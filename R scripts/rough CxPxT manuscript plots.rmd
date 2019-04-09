@@ -1,0 +1,428 @@
+---
+title: "CxPxT poss manuscript figures"
+author: "Liz"
+date: "September 22, 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,include=FALSE}
+library(dplyr)
+library(tidyr)
+library(reshape2)
+library(ggplot2)
+library(gridExtra)
+library(Rmisc)
+library(readr)
+library(nlme)
+library(lme4)
+library(cowplot)
+
+
+
+cpt <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt.gr.long.load.csv", 
+                col_types = cols(temp = col_factor(levels = c("20", 
+                                                              "25", "30"))))
+cpt$log.mT0<-log(cpt$mass.T0)
+cpt$log.mass<-log(cpt$mass)
+cpt$day.age<-(cpt$age/24)
+cpt.cl<-subset(cpt,died=="0")
+
+
+wide <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt gr wide.csv", 
+                 col_types = cols(temp = col_factor(levels = c("20", 
+                 "25", "30")), treatment = col_factor(levels = c("control", "para"))))
+
+wide.cl<-subset(wide,died=="0")
+
+
+avg <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt avg data.csv")
+avg$temp<-as.factor(avg$temp)
+avg$treat<-as.factor(avg$treat)
+
+
+avg.long <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt avg long.csv")
+avg.long$temp<-as.factor(avg.long$temp)
+avg.long$treat<-as.factor(avg.long$treat)
+
+
+
+theme_set(theme_classic(base_size=14))
+```
+
+<br>
+<br>
+<br>
+
+
+###Figure 1.) Raw data for mass gain and consumption
+
+<br>
+
+```{r,echo=FALSE,warning=FALSE}
+
+#for plot grid--raw data log mass gain
+
+rlmg.plot<- ggplot(cpt.cl, aes(day.age, log.mg, group=interaction(bug.id, temp), color=factor(temp)))
+rlmg.plot<-rlmg.plot+geom_line(aes(linetype=treatment)
+)+theme(legend.position="none"
+)+scale_color_manual(values=c("#56B4E9","#000000","#E69F00"),
+                     guide=guide_legend(title="Temperature [C]")
+)+scale_linetype_manual(values=c("solid","dashed"),name="Treatment",breaks=c("control","para"),
+                        labels=c("Control","Parasitized"),guide=guide_legend(keywidth=1.8)
+)+labs(x="Age [day]",y="Log of Mass Gain [mg]")
+
+
+
+#for plot grid--raw data log consumption
+
+rlc.plot<-ggplot(cpt.cl, aes(day.age, log.cnsmp, group=interaction(bug.id, temp), color=factor(temp)))
+rlc.plot<-rlc.plot+geom_line(aes(linetype=treatment)
+)+theme(legend.position = c(0.7, 0.3)
+)+scale_color_manual(values=c("#56B4E9","#000000","#E69F00"),
+                     guide=guide_legend(title="Temperature [C]")
+)+scale_linetype_manual(values=c("solid","dashed"),name="Treatment",breaks=c("control","para"),
+                        labels=c("Control","Parasitized"),guide=guide_legend(keywidth=1.8)
+)+scale_y_continuous(limits=c(0,10)
+)+labs(x="Age [day]",y="Log of Consumption [mg]")
+
+
+plot_grid(rlmg.plot, rlc.plot, labels = c("A", "B"),align="h")
+
+
+
+```
+
+
+
+
+
+<br>
+<br>
+<br>
+
+```{r,include=FALSE}
+
+#change hours to days (divide age by 24)
+#Add large/diff points where molts occur
+
+wide.cl$day.age.4<-(wide.cl$age.4/24)
+wide.cl$day.age.5<-(wide.cl$age.5/24)
+wide.cl$day.age.wand<-(wide.cl$age.wander/24)
+wide.cl$day.age.em<-(wide.cl$age.em/24)
+wide.cl$lmg4<-log(wide.cl$mass.gain.4)
+wide.cl$lmg5<-log(wide.cl$mass.gain.5)
+wide.cl$lmg.em<-log(wide.cl$mass.gain.em)
+wide.cl$lmg.wand<-log(wide.cl$mass.gain.wan)
+wide.cl$log.cnsmp4<-log(wide.cl$cnsmp.4)
+wide.cl$log.cnsmp5<-log(wide.cl$cnsmp.5)
+wide.cl$log.cnsmp.em<-log(wide.cl$cnsmp.em)
+wide.cl$log.cnsmp.wand<-log(wide.cl$cnsmp.wan)
+
+
+
+#SummarySE for log mass gain
+
+log.mg.sum<-summarySE(cpt.cl, measurevar="log.mg", 
+                      groupvars=c("temp", "treatment","expct.hour"),na.rm=TRUE)
+log.mg.sum
+log.mg.sum$treatment<-as.factor(log.mg.sum$treatment)
+
+
+
+
+#SummarySE for age
+
+age.sum<-summarySE(cpt.cl, measurevar="age", 
+                    groupvars=c("temp", "treatment","expct.hour"),na.rm=TRUE)
+
+age.sum
+
+
+#SummarySE for day age
+
+dage.sum<-summarySE(cpt.cl, measurevar="day.age", 
+                   groupvars=c("temp", "treatment","expct.hour"),na.rm=TRUE)
+
+dage.sum
+
+#Adding age and age se to the log mass gain summarySE
+
+log.mg.sum$day.age<-dage.sum[,5]
+log.mg.sum$day.age.se<-dage.sum[,7]
+
+
+#Messy and inelegant way of getting rid of the mongo data, but oh well
+
+subset(log.mg.sum, expct.hour > 340 & temp=="30" & treatment=="para")
+subset(log.mg.sum, expct.hour > 460 & temp=="25" & treatment=="para")
+
+log.mg.sum.ex<-log.mg.sum[-c(178:187),]
+log.mg.sum.ex<-log.mg.sum.ex[-c(129:133),]
+
+
+#SummarySE for consumption
+
+log.cnsmp.sum<-summarySE(cpt.cl, measurevar="log.cnsmp", 
+                      groupvars=c("temp", "treatment","expct.hour"),na.rm=TRUE)
+log.cnsmp.sum
+log.cnsmp.sum$treatment<-as.factor(log.cnsmp.sum$treatment)
+
+
+#SummarySE for age
+
+age.sum<-summarySE(cpt.cl, measurevar="age", 
+                   groupvars=c("temp", "treatment","expct.hour"),na.rm=TRUE)
+
+age.sum
+
+
+
+#SummarySE for day age
+
+dage.sum<-summarySE(cpt.cl, measurevar="day.age", 
+                   groupvars=c("temp", "treatment","expct.hour"),na.rm=TRUE)
+
+dage.sum
+
+#Adding age and age se to the log mass gain summarySE
+
+log.cnsmp.sum$day.age<-dage.sum[,5]
+log.cnsmp.sum$day.age.se<-dage.sum[,7]
+
+
+#Messy and inelegant way of getting rid of the mongo data, but oh well
+
+subset(log.cnsmp.sum, expct.hour > 340 & temp=="30" & treatment=="para")
+subset(log.cnsmp.sum, expct.hour > 460 & temp=="25" & treatment=="para")
+
+log.cnsmp.sum.ex<-log.cnsmp.sum[-c(178:187),]
+log.cnsmp.sum.ex<-log.cnsmp.sum.ex[-c(129:133),]
+
+
+
+
+
+dage4.sum<-summarySE(wide.cl,measurevar = "day.age.4",groupvars = c("temp","treatment"),na.rm=TRUE)
+dage4.sum
+
+dage5.sum<-summarySE(wide.cl,measurevar = "day.age.5",groupvars = c("temp","treatment"),na.rm=TRUE)
+dage5.sum
+
+dagewand.sum<-summarySE(wide.cl,measurevar = "day.age.wand",groupvars = c("temp","treatment"),na.rm=TRUE)
+dagewand.sum
+
+dagewand.sum<-subset(dagewand.sum,N>3)
+
+dage.em.sum<-summarySE(wide.cl,measurevar = "day.age.em",groupvars = c("temp","treatment"),na.rm=TRUE)
+dage.em.sum
+
+dage.em.sum<-subset(dage.em.sum,N>0)
+
+lmg4.sum<-summarySE(wide.cl,measurevar = "lmg4",groupvars = c("temp","treatment"),na.rm=TRUE)
+lmg4.sum  
+
+
+lmg5.sum<-summarySE(wide.cl,measurevar = "lmg5",groupvars = c("temp","treatment"),na.rm=TRUE)  
+lmg5.sum  
+
+
+lmgem.sum<-summarySE(wide.cl,measurevar = "lmg.em",groupvars = c("temp","treatment"),na.rm=TRUE)  
+lmgem.sum
+
+lmgem.sum<-subset(lmgem.sum,N>0)
+
+lmgwand.sum<-summarySE(wide.cl,measurevar = "lmg.wand",groupvars = c("temp","treatment"),na.rm=TRUE)  
+lmgwand.sum  
+
+lmgwand.sum<-subset(lmgwand.sum,N>3)
+
+lc4.sum<-summarySE(wide.cl,measurevar = "log.cnsmp4",groupvars = c("temp","treatment"),na.rm=TRUE)
+lc4.sum
+
+lc5.sum<-summarySE(wide.cl,measurevar = "log.cnsmp5",groupvars = c("temp","treatment"),na.rm=TRUE)
+lc5.sum
+
+
+lc.em.sum<-summarySE(wide.cl,measurevar = "log.cnsmp.em",groupvars = c("temp","treatment"),na.rm=TRUE)
+lc.em.sum
+
+lc.em.sum<-subset(lc.em.sum,N>0)
+
+
+lc.wand.sum<-summarySE(wide.cl,measurevar = "log.cnsmp.wand",groupvars = c("temp","treatment"),na.rm=TRUE)
+lc.wand.sum
+
+lc.wand.sum<-subset(lc.wand.sum,N>3)
+
+
+#Create data set that has the coordinates for average day age, log mass gain and log consumption for each instar
+#use in geom_point to make a point where the average instar is on each curve
+
+day.age<-c(0,0,0,0,0,0,dage4.sum[,4],dage5.sum[,4],dagewand.sum[,4],dage.em.sum[,4])
+dage.se<-c(0,0,0,0,0,0,dage4.sum[,6],dage5.sum[,6],dagewand.sum[,6],dage.em.sum[,6])
+log.mg<-c(0,0,0,0,0,0,lmg4.sum[,4],lmg5.sum[,4],lmgwand.sum[,4],lmgem.sum[,4])
+lmg.se<-c(0,0,0,0,0,0,lmg4.sum[,6],lmg5.sum[,6],lmgwand.sum[,6],lmgem.sum[,6])
+log.cnsmp<-c(0,0,0,0,0,0,lc4.sum[,4],lc5.sum[,4],lc.wand.sum[,4],lc.em.sum[,4])
+lc.se<-c(0,0,0,0,0,0,lc4.sum[,6],lc5.sum[,6],lc.wand.sum[,6],lc.em.sum[,6])
+temp<-c("20","20","25","25","30","30","20","20","25","25","30","30","20","20","25","25","30","30",
+        "20","25","30","20","25","30")
+treatment<-c("control","para","control","para","control","para","control","para","control","para",
+             "control","para","control","para","control","para","control","para","control","control",
+             "control","para","para","para")
+instar<-c("3","3","3","3","3","3","4","4","4","4","4","4","5","5","5","5","5","5","wander","wander",
+          "wander","emergence","emergence","emergence")
+
+
+
+avg.inst <- data.frame(day.age,dage.se,log.mg,lmg.se,log.cnsmp,lc.se,temp,treatment,instar)
+
+
+
+```
+
+###Figure 2.) Average data for mass gain and consumption
+
+<br>
+
+```{r,echo=FALSE,warning=FALSE}
+#Using cowplot to combine avg timepoint graphs for log mass gain and log consumption
+
+require(cowplot)
+theme_set(theme_cowplot())
+
+#log mass gain for cowplot
+
+
+ann_text <- data.frame(day.age = c(0,0,0),log.mg = c(9,9,9),name=c("20","25","30"),
+                       temp = factor(c(20,25,30),levels = c("20","25","30")), 
+                       treatment = factor(c("control","control","control"),levels=c("control","para")))
+
+
+lmg.plot<-ggplot(log.mg.sum.ex,aes(x=day.age,y=log.mg,group=treatment,color=treatment))
+lmg.plot<-lmg.plot+geom_point(aes(shape=treatment),size=2)+geom_line(aes(linetype=treatment),size=1
+)+geom_errorbar(aes(ymin=log.mg-se,ymax=log.mg+se),width=.5,size=.7
+)+geom_errorbarh(aes(xmin=day.age-day.age.se,xmax=day.age+day.age.se),height=1,size=.5
+)+scale_color_manual(values=c("black","red"), 
+                     name="Treatment",breaks=c("control","para"),
+                     labels=c("Control","Parasitized")
+)+scale_linetype_discrete(name="Treatment",breaks=c("control","para"),
+                          labels=c("Control","Parasitized")
+)+scale_shape_manual(name="Treatment",breaks=c("control","para"),values=c(16,17),
+                     labels=c("Control","Parasitized")
+)+geom_point(data=avg.inst,aes(x=day.age,y=log.mg),shape=15,size=4,show.legend = FALSE
+)+labs(x="Age [day]",y="Log mass gain [mg]"
+)+facet_wrap(~temp,dir="v")+theme(strip.background = element_blank(),strip.text.x = element_blank()
+)+geom_label(data=ann_text,aes(label=name),size=5,show.legend = FALSE)+ theme(legend.position="none")
+
+
+#log consumption for cowplot
+
+ann_text2 <- data.frame(day.age = c(0,0,0),log.cnsmp = c(9,9,9),name=c("20","25","30"),
+                        temp = factor(c(20,25,30),levels = c("20","25","30")), 
+                        treatment = factor(c("control","control","control"),levels=c("control","para")))
+
+
+cnsmp.plot<-ggplot(log.cnsmp.sum.ex,aes(x=day.age,y=log.cnsmp,group=treatment,color=treatment))
+cnsmp.plot<-cnsmp.plot+geom_point(aes(shape=treatment),size=2)+geom_line(aes(linetype=treatment),size=1
+)+geom_errorbar(aes(ymin=log.cnsmp-se,ymax=log.cnsmp+se),width=.5,size=.7
+)+geom_errorbarh(aes(xmin=day.age-day.age.se,xmax=day.age+day.age.se),height=1,size=.5
+)+scale_color_manual(values=c("black","red"), 
+                     name="Treatment",breaks=c("control","para"),
+                     labels=c("Control","Parasitized"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_discrete(name="Treatment",breaks=c("control","para"),
+                          labels=c("Control","Parasitized")
+)+scale_shape_manual(name="Treatment",breaks=c("control","para"),values=c(16,17),
+                     labels=c("Control","Parasitized")
+)+geom_point(data=avg.inst,aes(x=day.age,y=log.cnsmp),shape=15,size=4,show.legend = FALSE
+)+labs(x="Age [day]", y="Log consumption [dry mg]"
+)+scale_y_continuous(limits=c(0,10)
+)+facet_wrap(~temp,dir="v")+theme(strip.background = element_blank(),strip.text.x = element_blank()
+)+geom_label(data=ann_text2,aes(label=name),size=5,show.legend = FALSE
+)+theme(legend.position = c(0.7, 0.2))
+
+
+plot_grid(lmg.plot, cnsmp.plot, labels = c("A", "B"),align="h")
+
+
+
+```
+
+<br>
+<br>
+<br>
+
+```{r,include=FALSE}
+#Load plots
+
+
+para<-subset(wide.cl,treatment=="para")
+para<-subset(para,died=="0")
+para<-subset(para,suc.ovp=="1")
+para<-para[!is.na(para$instar.em),]
+para<-para[!is.na(para$num.unem),]
+para<-subset(para,num.ovp<=2)
+
+```
+
+
+
+###Figure 3.) Effect of load on number of wasp larvae emerged, and length of internal development
+
+<br>
+
+```{r,echo=FALSE,warning=FALSE}
+#num em by total load
+
+load.plot<-ggplot(para,aes(y=num.em,x=load,color=temp,linetype=temp))
+load.plot<-load.plot+geom_point()+geom_smooth(method="lm",se=FALSE
+)+scale_color_manual(values=c("#56B4E9","#009E73","#E69F00"),name="Temperature [C]",breaks=c("20","25","30"),
+                     labels=c("20","25","30"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_manual(values=c("solid","dotted","longdash"),name="Temperature [C]",breaks=c("20","25","30"),
+                        labels=c("20","25","30"),guide=guide_legend(keywidth=1.8)
+)+labs(x="Total load",y="Number emerged"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1),
+        legend.position="none")
+
+
+
+
+#internal dev time by load
+
+loaddev.plot<-ggplot(para,aes(x=load,y=int.wasp.dev,group=temp,color=temp,linetype=temp))
+loaddev.plot<-loaddev.plot+geom_point(aes(shape=temp))+geom_smooth(se=FALSE,method="lm"
+)+scale_color_manual(values=c("#56B4E9","#009E73","#E69F00"),name="Temperature [C]",breaks=c("20","25","30"),
+                     labels=c("20","25","30"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_manual(values=c("solid","dotted","longdash"),name="Temperature [C]",breaks=c("20","25","30"),
+                        labels=c("20","25","30"),guide=guide_legend(keywidth=1.8)
+)+scale_shape_manual(name="Temperature [C]",breaks=c("20","25","30"),labels=c("20","25","30"),
+                     values=c(16,17,15),guide=guide_legend(keywidth=1.8)
+)+labs(x="Total Load",y="Internal Development time [days]"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1),
+        legend.position = c(0.8, 0.9))
+
+
+
+plot_grid(load.plot,loaddev.plot,labels = c("A", "B"),align="h")
+
+
+```
+
+
+Need to address the intercept for the 30--force through 0
+Maybe don't specify geom_smooth
+
+
+
+
+
+
+
+

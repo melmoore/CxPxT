@@ -1,0 +1,301 @@
+Tried models with temp and tp, only interaction between temp:tp was sig, but was not once removing just temp and 
+tp
+
+So just stuck with model with wet.mass as predictor
+
+
+Call:
+lm(formula = dry.mass ~ wet.mass, data = diet)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-209.85  -19.18   -6.81    4.36  612.95 
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 11.333364  11.655709   0.972    0.333    
+wet.mass     0.235200   0.002971  79.161   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 89.94 on 99 degrees of freedom
+Multiple R-squared:  0.9844,	Adjusted R-squared:  0.9843 
+F-statistic:  6267 on 1 and 99 DF,  p-value: < 2.2e-16
+
+
+
+Intercept: 11.3333
+Slope:0.2352
+
+
+
+Initial control diet
+
+Call:
+lm(formula = dry.mass ~ wet.mass, data = diet.i)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-126.721  -51.216    6.844   20.195  187.797 
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -23.280920   9.521270  -2.445   0.0163 *  
+wet.mass      0.227069   0.001411 160.945   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 58.97 on 98 degrees of freedom
+Multiple R-squared:  0.9962,	Adjusted R-squared:  0.9962 
+F-statistic: 2.59e+04 on 1 and 98 DF,  p-value: < 2.2e-16
+
+Intercept: -23.2809
+Slope: 0.2271
+
+
+
+
+Final diet equation: y=0.2352x+11.3333
+
+Initial diet equation: y=0.2271x-23.2809
+
+
+
+
+Tested models for final and initial with and without intercepts:
+
+
+
+FINAL:
+
+
+Without intercept:
+
+> mod1<-lm(dry.mass~-1+wet.mass,data=diet.f)
+> anova(mod1)
+Analysis of Variance Table
+
+Response: dry.mass
+           Df   Sum Sq  Mean Sq F value    Pr(>F)    
+wet.mass    1 87344417 87344417   10805 < 2.2e-16 ***
+Residuals 100   808397     8084                      
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> summary(mod1)
+
+Call:
+lm(formula = dry.mass ~ -1 + wet.mass, data = diet.f)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-215.03  -10.50    2.39   14.92  615.42 
+
+Coefficients:
+         Estimate Std. Error t value Pr(>|t|)    
+wet.mass 0.237051   0.002281   103.9   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 89.91 on 100 degrees of freedom
+Multiple R-squared:  0.9908,	Adjusted R-squared:  0.9907 
+F-statistic: 1.08e+04 on 1 and 100 DF,  p-value: < 2.2e-16
+
+
+
+With intercept:
+
+> mod.int<-lm(dry.mass~wet.mass,data=diet.f)
+> anova(mod.int)
+Analysis of Variance Table
+
+Response: dry.mass
+          Df   Sum Sq  Mean Sq F value    Pr(>F)    
+wet.mass   1 50686083 50686083  6266.5 < 2.2e-16 ***
+Residuals 99   800749     8088                      
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> summary(mod.int)
+
+Call:
+lm(formula = dry.mass ~ wet.mass, data = diet.f)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-209.85  -19.18   -6.81    4.36  612.95 
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 11.333364  11.655709   0.972    0.333    
+wet.mass     0.235200   0.002971  79.161   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 89.94 on 99 degrees of freedom
+Multiple R-squared:  0.9844,	Adjusted R-squared:  0.9843 
+F-statistic:  6267 on 1 and 99 DF,  p-value: < 2.2e-16
+
+
+Comparing models:
+
+> anova(mod1,mod.int)
+Analysis of Variance Table
+
+Model 1: dry.mass ~ -1 + wet.mass
+Model 2: dry.mass ~ wet.mass
+  Res.Df    RSS Df Sum of Sq      F Pr(>F)
+1    100 808397                           
+2     99 800749  1    7647.2 0.9455 0.3332
+
+Not sig diff--but:
+
+> AIC(mod1)
+[1] 1198.382
+> AIC(mod.int)
+[1] 1199.422
+
+AIC of model with out intercept is better (plus R2 is better for that model)
+
+final diet equation: y=.237x
+
+
+
+
+INITIAL:
+
+
+Model without intercept:
+
+> mod.i<-lm(dry.mass~-1+wet.mass,data=diet.i)
+> anova(mod.i)
+Analysis of Variance Table
+
+Response: dry.mass
+          Df    Sum Sq   Mean Sq F value    Pr(>F)    
+wet.mass   1 229257274 229257274   62765 < 2.2e-16 ***
+Residuals 99    361607      3653                      
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> summary(mod.i)
+
+Call:
+lm(formula = dry.mass ~ -1 + wet.mass, data = diet.i)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-126.453  -49.291  -13.089    4.295  194.358 
+
+Coefficients:
+          Estimate Std. Error t value Pr(>|t|)    
+wet.mass 0.2243610  0.0008955   250.5   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 60.44 on 99 degrees of freedom
+Multiple R-squared:  0.9984,	Adjusted R-squared:  0.9984 
+F-statistic: 6.277e+04 on 1 and 99 DF,  p-value: < 2.2e-16
+
+
+
+Model with intercept:
+
+> modi.int<-lm(dry.mass~wet.mass,data=diet.i)
+> anova(modi.int)
+Analysis of Variance Table
+
+Response: dry.mass
+          Df   Sum Sq  Mean Sq F value    Pr(>F)    
+wet.mass   1 90084177 90084177   25903 < 2.2e-16 ***
+Residuals 98   340815     3478                      
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> summary(modi.int)
+
+Call:
+lm(formula = dry.mass ~ wet.mass, data = diet.i)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-126.721  -51.216    6.844   20.195  187.797 
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -23.280920   9.521270  -2.445   0.0163 *  
+wet.mass      0.227069   0.001411 160.945   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 58.97 on 98 degrees of freedom
+Multiple R-squared:  0.9962,	Adjusted R-squared:  0.9962 
+F-statistic: 2.59e+04 on 1 and 98 DF,  p-value: < 2.2e-16
+
+
+Comparing models:
+
+> anova(modi.int,mod.i)
+Analysis of Variance Table
+
+Model 1: dry.mass ~ wet.mass
+Model 2: dry.mass ~ -1 + wet.mass
+  Res.Df    RSS Df Sum of Sq      F  Pr(>F)  
+1     98 340815                              
+2     99 361607 -1    -20792 5.9788 0.01626 *
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Sig diff between models, and:
+
+> AIC(modi.int)
+[1] 1103.18
+> AIC(mod.i)  #sig diff between, mod with intercept has lower AIC
+[1] 1107.102
+
+Model with intercept is better
+
+
+initial equation: y=.227x-23.281
+
+
+
+
+
+
+Combining initial and final into one dataset, running model on wet.mass
+and type (final vs initial)
+
+> bth.mod<-lm(dry.mass~wet.mass*type,data=diet.bth)
+> anova(bth.mod)
+Analysis of Variance Table
+
+Response: dry.mass
+               Df    Sum Sq   Mean Sq    F value    Pr(>F)    
+wet.mass        1 157303244 157303244 27145.8501 < 2.2e-16 ***
+type            1    173099    173099    29.8718 1.385e-07 ***
+wet.mass:type   1     39733     39733     6.8567  0.009517 ** 
+Residuals     197   1141565      5795                         
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> summary(bth.mod)
+
+Call:
+lm(formula = dry.mass ~ wet.mass * type, data = diet.bth)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-209.85  -35.94   -5.00   17.13  612.95 
+
+Coefficients:
+                 Estimate Std. Error t value Pr(>|t|)    
+(Intercept)     11.333364   9.865636   1.149  0.25204    
+wet.mass         0.235200   0.002515  93.525  < 2e-16 ***
+typei          -34.614284  15.760217  -2.196  0.02924 *  
+wet.mass:typei  -0.008131   0.003105  -2.619  0.00952 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 76.12 on 197 degrees of freedom
+Multiple R-squared:  0.9928,	Adjusted R-squared:  0.9927 
+F-statistic:  9061 on 3 and 197 DF,  p-value: < 2.2e-16
+
+
+Type has sig effect, so not combining them for one equation
+

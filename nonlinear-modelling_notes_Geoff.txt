@@ -1,0 +1,52 @@
+package deSolve
+
+Geoff code: 1 resource 2 consumer model, resource grows logistically
+
+compldet <- dr/dT = R * (1 - R/10000) - (a1 * R * N1) - (a2 * R * N2)
+
+R=resource, N=consumer
+
+starts with t for time, y for initial data (?), param for parameters you're setting
+
+y=c(R=10, N1= ..., N2...,)
+param=c(r=1, K=10000)
+
+lsoda(y=initial, fn=compldet, times=timesequence, ...)
+this will give you a table with population size at each time point (given parameter 
+values). Use other function to estimate parameter values
+
+deSolve particular how function and input is constructed--need to have your function
+output as a list
+
+
+
+List of components:
+1-function that solves differential equation
+2-Least squares "objective" function (could be some sort of Max liklihood fn)
+3-optimization function
+
+
+leastsq <- function(param, data) {
+-solve difference eqn for these parameters
+-subset solutions to relevant time blocks of data
+-subtract solutions from data and square results
+}
+
+optimization--want the parameters that give the minimum values of that function
+--fancy trial and error
+
+lsoda and ode are good solving functions from deSolve
+
+ode can give weird error messages about stiffness--data that changes rapidly in 
+small time frames--lsoda avoid most of these issues because you can decrease time
+steps
+
+if the system isn't chaning much, it can be hard to estimate and fit appropriate data
+
+
+
+
+
+
+
+

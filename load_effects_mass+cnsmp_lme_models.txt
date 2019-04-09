@@ -1,0 +1,37 @@
+> lmload.mod2<-lme(log.mass~(age+I(age^2)):(temp*load)+temp,random=~age|bug.id,data=para.lng2,na.action=na.omit,method="ML")
+> anova(lmload.mod2)
+                   numDF denDF   F-value p-value
+(Intercept)            1  2926 31394.264  <.0001
+temp                   2   141    42.627  <.0001
+age:temp               3  2926  2409.913  <.0001
+age:load               1  2926    36.368  <.0001
+I(age^2):temp          3  2926   123.857  <.0001
+I(age^2):load          1  2926     3.181  0.0746
+age:temp:load          2  2926     1.740  0.1757
+I(age^2):temp:load     2  2926    28.248  <.0001
+
+
+
+
+
+> cnsmpload.mod<-lme(tot.cnsmp~(age+I(age^2)):(temp*load)+temp,random=~age|bug.id,data=para.lng2,na.action=na.omit,method="ML")
+> anova(cnsmpload.mod)
+                   numDF denDF   F-value p-value
+(Intercept)            1  2875  475.9594  <.0001
+temp                   2   141  334.4675  <.0001
+age:temp               3  2875  645.5470  <.0001
+age:load               1  2875   25.2230  <.0001
+I(age^2):temp          3  2875 2638.4717  <.0001
+I(age^2):load          1  2875  905.0351  <.0001
+age:temp:load          2  2875    6.6848  0.0013
+I(age^2):temp:load     2  2875  121.1221  <.0001
+
+
+
+
+
+try binning data and plotting the averages on top of the raw data (0-100, 100-200, 200-300)
+don't have to have even sized bins across distribution
+
+could also plot the predicted values--not all, but show a subset from whole range
+of load possibilities

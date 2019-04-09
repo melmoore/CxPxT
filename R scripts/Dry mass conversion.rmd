@@ -1,0 +1,987 @@
+---
+title: "dry mass conversion"
+author: "Liz"
+date: "May 3, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+###Set up
+
+Load necessary packages:
+
+```{r,warning=FALSE}
+library(readr)
+library(dplyr)
+library(lubridate)
+```
+
+
+
+
+Loading dataset:
+
+```{r,message=FALSE}
+
+para <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/raw cpt.csv")
+View(para)
+```
+
+
+
+Make timepoint data (3rd, 4th, 5th, emerged, etc), bin, and instars factors (others?)
+
+Ex:
+
+```{r}
+para$timepoint.died=as.factor(para$timepoint.died)
+para$timepoint.4=as.factor(para$timepoint.4)
+```
+
+
+```{r,include=FALSE}
+para$timepoint.5=as.factor(para$timepoint.5)
+para$timepoint.wander=as.factor(para$timepoint.wander)
+para$timepoint.em=as.factor(para$timepoint.em)
+para$bin=as.factor(para$bin)
+para$instar.em=as.factor(para$instar.em)
+para$instar.T0=as.factor(para$instar.T0)
+para$instar.T1=as.factor(para$instar.T1)
+para$instar.T2=as.factor(para$instar.T2)
+para$instar.T3=as.factor(para$instar.T3)
+para$instar.T4=as.factor(para$instar.T4)
+para$instar.T5=as.factor(para$instar.T5)
+para$instar.T6=as.factor(para$instar.T6)
+para$instar.T7=as.factor(para$instar.T7)
+para$instar.T8=as.factor(para$instar.T8)
+para$instar.T9=as.factor(para$instar.T9)
+para$instar.T10=as.factor(para$instar.T10)
+para$instar.T11=as.factor(para$instar.T11)
+para$instar.T12=as.factor(para$instar.T12)
+para$instar.T13=as.factor(para$instar.T13)
+para$instar.T14=as.factor(para$instar.T14)
+para$instar.T15=as.factor(para$instar.T15)
+para$instar.T16=as.factor(para$instar.T16)
+para$instar.T17=as.factor(para$instar.T17)
+para$instar.T18=as.factor(para$instar.T18)
+para$instar.T19=as.factor(para$instar.T19)
+para$instar.T20=as.factor(para$instar.T20)
+para$instar.T21=as.factor(para$instar.T21)
+para$instar.T22=as.factor(para$instar.T22)
+para$instar.T23=as.factor(para$instar.T23)
+para$instar.T24=as.factor(para$instar.T24)
+para$instar.T25=as.factor(para$instar.T25)
+para$instar.T26=as.factor(para$instar.T26)
+para$instar.T27=as.factor(para$instar.T27)
+para$instar.T28=as.factor(para$instar.T28)
+para$instar.T29=as.factor(para$instar.T29)
+para$instar.T30=as.factor(para$instar.T30)
+para$instar.T31=as.factor(para$instar.T31)
+para$instar.T32=as.factor(para$instar.T32)
+para$instar.T33=as.factor(para$instar.T33)
+para$instar.T34=as.factor(para$instar.T34)
+para$instar.T35=as.factor(para$instar.T35)
+para$instar.T36=as.factor(para$instar.T36)
+para$instar.T37=as.factor(para$instar.T37)
+para$instar.T38=as.factor(para$instar.T38)
+```
+
+
+
+###Converting initial wet masses to dry mass
+
+
+Create new columns with initial caterpillar diet wet mass * the slope of the initial regression line
+
+```{r,include=FALSE}
+para$dry.diet.cat.in.T0<-NULL
+para$dry.diet.cat.out.T0<-NULL
+para$dry.diet.cont.inT0<-NULL
+para$dry.diet.cont.out.T0<-NULL
+para$comments<-NULL
+```
+
+
+Ex: 
+```{r}
+para$dry.cat.in.T0<-(para$diet.cat.in.T0*.227)
+para$dry.cat.in.T1<-(para$diet.cat.in.T1*.227)
+```
+
+```{r,include=FALSE}
+para$dry.cat.in.T2<-(para$diet.cat.in.T2*.227)
+para$dry.cat.in.T3<-(para$diet.cat.in.T3*.227)
+para$dry.cat.in.T4<-(para$diet.cat.in.T4*.227)
+para$dry.cat.in.T5<-(para$diet.cat.in.T5*.227)
+para$dry.cat.in.T6<-(para$diet.cat.in.T6*.227)
+para$dry.cat.in.T7<-(para$diet.cat.in.T7*.227)
+para$dry.cat.in.T8<-(para$diet.cat.in.T8*.227)
+para$dry.cat.in.T9<-(para$diet.cat.in.T9*.227)
+para$dry.cat.in.T10<-(para$diet.cat.in.T10*.227)
+para$dry.cat.in.T11<-(para$diet.cat.in.T11*.227)
+para$dry.cat.in.T12<-(para$diet.cat.in.T12*.227)
+para$dry.cat.in.T13<-(para$diet.cat.in.T13*.227)
+para$dry.cat.in.T14<-(para$diet.cat.in.T14*.227)
+para$dry.cat.in.T15<-(para$diet.cat.in.T15*.227)
+para$dry.cat.in.T16<-(para$diet.cat.in.T16*.227)
+para$dry.cat.in.T17<-(para$diet.cat.in.T17*.227)
+para$dry.cat.in.T18<-(para$diet.cat.in.T18*.227)
+para$dry.cat.in.T19<-(para$diet.cat.in.T19*.227)
+para$dry.cat.in.T20<-(para$diet.cat.in.T20*.227)
+para$dry.cat.in.T21<-(para$diet.cat.in.T21*.227)
+para$dry.cat.in.T22<-(para$diet.cat.in.T22*.227)
+para$dry.cat.in.T23<-(para$diet.cat.in.T23*.227)
+para$dry.cat.in.T24<-(para$diet.cat.in.T24*.227)
+para$dry.cat.in.T25<-(para$diet.cat.in.T25*.227)
+para$dry.cat.in.T26<-(para$diet.cat.in.T26*.227)
+para$dry.cat.in.T27<-(para$diet.cat.in.T27*.227)
+para$dry.cat.in.T28<-(para$diet.cat.in.T28*.227)
+para$dry.cat.in.T29<-(para$diet.cat.in.T29*.227)
+para$dry.cat.in.T30<-(para$diet.cat.in.T30*.227)
+para$dry.cat.in.T31<-(para$diet.cat.in.T31*.227)
+para$dry.cat.in.T32<-(para$diet.cat.in.T32*.227)
+para$dry.cat.in.T33<-(para$diet.cat.in.T33*.227)
+para$dry.cat.in.T34<-(para$diet.cat.in.T34*.227)
+para$dry.cat.in.T35<-(para$diet.cat.in.T35*.227)
+para$dry.cat.in.T36<-(para$diet.cat.in.T36*.227)
+para$dry.cat.in.T37<-(para$diet.cat.in.T37*.227)
+
+```
+
+
+
+
+Create new columns with initial control diet wet mass * the slope of the initial regression line
+
+Ex: 
+```{r}
+para$dry.cont.in.T0<-(para$diet.cont.in.T0*.227)
+para$dry.cont.in.T1<-(para$diet.cont.in.T1*.227)
+```
+
+
+```{r,include=FALSE}
+para$dry.cont.in.T2<-(para$diet.cont.in.T2*.227)
+para$dry.cont.in.T3<-(para$diet.cont.in.T3*.227)
+para$dry.cont.in.T4<-(para$diet.cont.in.T4*.227)
+para$dry.cont.in.T5<-(para$diet.cont.in.T5*.227)
+para$dry.cont.in.T6<-(para$diet.cont.in.T6*.227)
+para$dry.cont.in.T7<-(para$diet.cont.in.T7*.227)
+para$dry.cont.in.T8<-(para$diet.cont.in.T8*.227)
+para$dry.cont.in.T9<-(para$diet.cont.in.T9*.227)
+para$dry.cont.in.T10<-(para$diet.cont.in.T10*.227)
+para$dry.cont.in.T11<-(para$diet.cont.in.T11*.227)
+para$dry.cont.in.T12<-(para$diet.cont.in.T12*.227)
+para$dry.cont.in.T13<-(para$diet.cont.in.T13*.227)
+para$dry.cont.in.T14<-(para$diet.cont.in.T14*.227)
+para$dry.cont.in.T15<-(para$diet.cont.in.T15*.227)
+para$dry.cont.in.T16<-(para$diet.cont.in.T16*.227)
+para$dry.cont.in.T17<-(para$diet.cont.in.T17*.227)
+para$dry.cont.in.T18<-(para$diet.cont.in.T18*.227)
+para$dry.cont.in.T19<-(para$diet.cont.in.T19*.227)
+para$dry.cont.in.T20<-(para$diet.cont.in.T20*.227)
+para$dry.cont.in.T21<-(para$diet.cont.in.T21*.227)
+para$dry.cont.in.T22<-(para$diet.cont.in.T22*.227)
+para$dry.cont.in.T23<-(para$diet.cont.in.T23*.227)
+para$dry.cont.in.T24<-(para$diet.cont.in.T24*.227)
+para$dry.cont.in.T25<-(para$diet.cont.in.T25*.227)
+para$dry.cont.in.T26<-(para$diet.cont.in.T26*.227)
+para$dry.cont.in.T27<-(para$diet.cont.in.T27*.227)
+para$dry.cont.in.T28<-(para$diet.cont.in.T28*.227)
+para$dry.cont.in.T29<-(para$diet.cont.in.T29*.227)
+para$dry.cont.in.T30<-(para$diet.cont.in.T30*.227)
+para$dry.cont.in.T31<-(para$diet.cont.in.T31*.227)
+para$dry.cont.in.T32<-(para$diet.cont.in.T32*.227)
+para$dry.cont.in.T33<-(para$diet.cont.in.T33*.227)
+para$dry.cont.in.T34<-(para$diet.cont.in.T34*.227)
+para$dry.cont.in.T35<-(para$diet.cont.in.T35*.227)
+para$dry.cont.in.T36<-(para$diet.cont.in.T36*.227)
+para$dry.cont.in.T37<-(para$diet.cont.in.T37*.227)
+
+```
+
+
+
+
+
+
+
+###Converting final wet masses to dry masses
+
+
+
+Create new columns with final caterpillar diet wet mass * the slope of the final regression line
+
+
+Ex: 
+```{r}
+para$dry.cat.out.T0<-(para$diet.cat.out.T0*.237)
+para$dry.cat.out.T1<-(para$diet.cat.out.T1*.237)
+```
+
+
+
+```{r,include=FALSE}
+para$dry.cat.out.T2<-(para$diet.cat.out.T2*.237)
+para$dry.cat.out.T3<-(para$diet.cat.out.T3*.237)
+para$dry.cat.out.T4<-(para$diet.cat.out.T4*.237)
+para$dry.cat.out.T5<-(para$diet.cat.out.T5*.237)
+para$dry.cat.out.T6<-(para$diet.cat.out.T6*.237)
+para$dry.cat.out.T7<-(para$diet.cat.out.T7*.237)
+para$dry.cat.out.T8<-(para$diet.cat.out.T8*.237)
+para$dry.cat.out.T9<-(para$diet.cat.out.T9*.237)
+para$dry.cat.out.T10<-(para$diet.cat.out.T10*.237)
+para$dry.cat.out.T11<-(para$diet.cat.out.T11*.237)
+para$dry.cat.out.T12<-(para$diet.cat.out.T12*.237)
+para$dry.cat.out.T13<-(para$diet.cat.out.T13*.237)
+para$dry.cat.out.T14<-(para$diet.cat.out.T14*.237)
+para$dry.cat.out.T15<-(para$diet.cat.out.T15*.237)
+para$dry.cat.out.T16<-(para$diet.cat.out.T16*.237)
+para$dry.cat.out.T17<-(para$diet.cat.out.T17*.237)
+para$dry.cat.out.T18<-(para$diet.cat.out.T18*.237)
+para$dry.cat.out.T19<-(para$diet.cat.out.T19*.237)
+para$dry.cat.out.T20<-(para$diet.cat.out.T20*.237)
+para$dry.cat.out.T21<-(para$diet.cat.out.T21*.237)
+para$dry.cat.out.T22<-(para$diet.cat.out.T22*.237)
+para$dry.cat.out.T23<-(para$diet.cat.out.T23*.237)
+para$dry.cat.out.T24<-(para$diet.cat.out.T24*.237)
+para$dry.cat.out.T25<-(para$diet.cat.out.T25*.237)
+para$dry.cat.out.T26<-(para$diet.cat.out.T26*.237)
+para$dry.cat.out.T27<-(para$diet.cat.out.T27*.237)
+para$dry.cat.out.T28<-(para$diet.cat.out.T28*.237)
+para$dry.cat.out.T29<-(para$diet.cat.out.T29*.237)
+para$dry.cat.out.T30<-(para$diet.cat.out.T30*.237)
+para$dry.cat.out.T31<-(para$diet.cat.out.T31*.237)
+para$dry.cat.out.T32<-(para$diet.cat.out.T32*.237)
+para$dry.cat.out.T33<-(para$diet.cat.out.T33*.237)
+para$dry.cat.out.T34<-(para$diet.cat.out.T34*.237)
+para$dry.cat.out.T35<-(para$diet.cat.out.T35*.237)
+para$dry.cat.out.T36<-(para$diet.cat.out.T36*.237)
+
+```
+
+
+
+Create new columns with final control diet wet mass * the slope of the final regression line
+
+
+Ex: 
+```{r}
+para$dry.cont.out.T0<-(para$diet.cont.out.T0*.237)
+para$dry.cont.out.T1<-(para$diet.cont.out.T1*.237)
+```
+
+
+
+```{r,include=FALSE}
+para$dry.cont.out.T2<-(para$diet.cont.out.T2*.237)
+para$dry.cont.out.T3<-(para$diet.cont.out.T3*.237)
+para$dry.cont.out.T4<-(para$diet.cont.out.T4*.237)
+para$dry.cont.out.T5<-(para$diet.cont.out.T5*.237)
+para$dry.cont.out.T6<-(para$diet.cont.out.T6*.237)
+para$dry.cont.out.T7<-(para$diet.cont.out.T7*.237)
+para$dry.cont.out.T8<-(para$diet.cont.out.T8*.237)
+para$dry.cont.out.T9<-(para$diet.cont.out.T9*.237)
+para$dry.cont.out.T10<-(para$diet.cont.out.T10*.237)
+para$dry.cont.out.T11<-(para$diet.cont.out.T11*.237)
+para$dry.cont.out.T12<-(para$diet.cont.out.T12*.237)
+para$dry.cont.out.T13<-(para$diet.cont.out.T13*.237)
+para$dry.cont.out.T14<-(para$diet.cont.out.T14*.237)
+para$dry.cont.out.T15<-(para$diet.cont.out.T15*.237)
+para$dry.cont.out.T16<-(para$diet.cont.out.T16*.237)
+para$dry.cont.out.T17<-(para$diet.cont.out.T17*.237)
+para$dry.cont.out.T18<-(para$diet.cont.out.T18*.237)
+para$dry.cont.out.T19<-(para$diet.cont.out.T19*.237)
+para$dry.cont.out.T20<-(para$diet.cont.out.T20*.237)
+para$dry.cont.out.T21<-(para$diet.cont.out.T21*.237)
+para$dry.cont.out.T22<-(para$diet.cont.out.T22*.237)
+para$dry.cont.out.T23<-(para$diet.cont.out.T23*.237)
+para$dry.cont.out.T24<-(para$diet.cont.out.T24*.237)
+para$dry.cont.out.T25<-(para$diet.cont.out.T25*.237)
+para$dry.cont.out.T26<-(para$diet.cont.out.T26*.237)
+para$dry.cont.out.T27<-(para$diet.cont.out.T27*.237)
+para$dry.cont.out.T28<-(para$diet.cont.out.T28*.237)
+para$dry.cont.out.T29<-(para$diet.cont.out.T29*.237)
+para$dry.cont.out.T30<-(para$diet.cont.out.T30*.237)
+para$dry.cont.out.T31<-(para$diet.cont.out.T31*.237)
+para$dry.cont.out.T32<-(para$diet.cont.out.T32*.237)
+para$dry.cont.out.T33<-(para$diet.cont.out.T33*.237)
+para$dry.cont.out.T34<-(para$diet.cont.out.T34*.237)
+para$dry.cont.out.T35<-(para$diet.cont.out.T35*.237)
+para$dry.cont.out.T36<-(para$diet.cont.out.T36*.237)
+
+```
+
+
+
+
+
+###Calculating stand alone and running total consumption for each time point/time period
+
+
+Create a new column with consumption of first time period (cat. initial - cat. final: in.T0-out.T0)
+
+```{r}
+para$dry.cnsmp.T0_T1<-(para$dry.cat.in.T0-para$dry.cat.out.T0)
+```
+
+
+
+Create a new column with running total of consumption for the first time period--will be the same value as the stand alone consumption for the first time period
+
+```{r}
+para$dry.totcnsmp.T1<-(para$dry.cat.in.T0-para$dry.cat.out.T0)
+```
+
+
+
+Create a new column with stand alone consumption for the 2nd time period (in.T1-out.T1)
+
+```{r}
+para$dry.cnsmp.T1_T2<-(para$dry.cat.in.T1-para$dry.cat.out.T1)
+```
+
+
+
+Create a new column with the running total of consumption for 2nd time period--will be the runnng total from the 1st tp + the stand alone total from the 2nd tp (dry.totcnsmp.T1 + dry.cnsmp.T1-T2)  
+
+```{r}
+para$dry.totcnsmp.T2<-(para$dry.totcnsmp.T1+para$dry.cnsmp.T1_T2)
+```
+
+
+
+Create new columns for stand alone and running total consumption for all time points
+
+```{r,include=FALSE}
+#3rd time period stand alone (in.T2-out.T2)
+
+para$dry.cnsmp.T2_T3<-(para$dry.cat.in.T2-para$dry.cat.out.T2)
+
+#3rd time period running total (dry.totcnsmp.T2 + dry.cnsmp.T2_T3)
+
+para$dry.totcnsmp.T3<-(para$dry.totcnsmp.T2+para$dry.cnsmp.T2_T3)
+
+#4th time period stand alone (in.T3-out.T3)
+
+para$dry.cnsmp.T3_T4<-(para$dry.cat.in.T3-para$dry.cat.out.T3)
+
+#4th time period running total (dry.totcnsmp.T3 + dry.cnsmp.T3_T4)
+
+para$dry.totcnsmp.T4<-(para$dry.totcnsmp.T3+para$dry.cnsmp.T3_T4)
+
+#5th time period stand alone (in.T4-out.T4)
+
+para$dry.cnsmp.T4_T5<-(para$dry.cat.in.T4-para$dry.cat.out.T4)
+
+#5th time period running total (dry.totcnsmp.T4 + dry.cnsmp.T4_T5)
+
+para$dry.totcnsmp.T5<-(para$dry.cnsmp.T4_T5+para$dry.totcnsmp.T4)
+
+#6th time period stand alone (in.T5-out.T5)
+
+para$dry.cnsmp.T5_T6<-(para$dry.cat.in.T5-para$dry.cat.out.T5)
+
+#6th time period running total (dry.totcnsmp.T5 + dry.cnsmp.T5_T6)
+
+para$dry.totcnsmp.T6<-(para$dry.cnsmp.T5_T6+para$dry.totcnsmp.T5)
+
+#7th time period stand alone (in.T6-out.T6)
+
+para$dry.cnsmp.T6_T7<-(para$dry.cat.in.T6-para$dry.cat.out.T6)
+
+#7th time period running total (dry.cnsmp.T6_T7 + dry.tot.cnsmp.T6)
+
+para$dry.totcnsmp.T7<-(para$dry.cnsmp.T6_T7+para$dry.totcnsmp.T6)
+
+#8th time period stand alone (in.T7-out.T7)
+
+para$dry.cnsmp.T7_T8<-(para$dry.cat.in.T7-para$dry.cat.out.T7)
+
+#8th time period running total (dry.cnsmp.T7_T8 + dry.tot.cnsmp.T7)
+
+para$dry.totcnsmp.T8<-(para$dry.cnsmp.T7_T8+para$dry.totcnsmp.T7)
+
+#9th time period stand alone (in.T8-out.T8)
+
+para$dry.cnsmp.T8_T9<-(para$dry.cat.in.T8-para$dry.cat.out.T8)
+
+#9th time period running total (T8_T9 + tot.T8)
+
+para$dry.totcnsmp.T9<-(para$dry.cnsmp.T8_T9+para$dry.totcnsmp.T8)
+
+#10th time period stand alone (in.T9-out.T9)
+
+para$dry.cnsmp.T9_T10<-(para$dry.cat.in.T9-para$dry.cat.out.T9)
+
+#10th time period running total (T9_T10 + tot.T9)
+
+para$dry.totcnsmp.T10<-(para$dry.cnsmp.T9_T10+para$dry.totcnsmp.T9)
+
+#11th time period stand alone (in.T10-out.T10)
+
+para$dry.cnsmp.T10_T11<-(para$dry.cat.in.T10-para$dry.cat.out.T10)
+
+#11th time period running total (T10_T11 + tot.T10)
+
+para$dry.totcnsmp.T11<-(para$dry.cnsmp.T10_T11+para$dry.totcnsmp.T10)
+
+#12th time period stand alone (in.T11-out.T11)
+
+para$dry.cnsmp.T11_T12<-(para$dry.cat.in.T11-para$dry.cat.out.T11)
+
+#12th time period running total (T11_T12 + tot.T11)
+
+para$dry.totcnsmp.T12<-(para$dry.cnsmp.T11_T12+para$dry.totcnsmp.T11)
+
+#13th time period stand alone (in.T12-out.T12)
+
+para$dry.cnsmp.T12_T13<-(para$dry.cat.in.T12-para$dry.cat.out.T12)
+
+#13th time period running total (T12_T13 + tot.T12)
+
+para$dry.totcnsmp.T13<-(para$dry.cnsmp.T12_T13+para$dry.totcnsmp.T12)
+
+#14th time period stand alone (in.T13-out.T13)
+
+para$dry.cnsmp.T13_T14<-(para$dry.cat.in.T13-para$dry.cat.out.T13)
+
+#14th time period running total (T13_T14 + tot.T13)
+
+para$dry.totcnsmp.T14<-(para$dry.cnsmp.T13_T14+para$dry.totcnsmp.T13)
+
+#15th time period stand alone (in.T14-out.T14)
+
+para$dry.cnsmp.T14_T15<-(para$dry.cat.in.T14-para$dry.cat.out.T14)
+
+#15th time period running total (T14_T15 + tot.T14)
+
+para$dry.totcnsmp.T15<-(para$dry.cnsmp.T14_T15+para$dry.totcnsmp.T14)
+
+#16th time period stand alone (in.T15-out.T15)
+
+para$dry.cnsmp.T15_T16<-(para$dry.cat.in.T15-para$dry.cat.out.T15)
+
+#16th time period running total (T15_T16 + tot.T15)
+
+para$dry.totcnsmp.T16<-(para$dry.cnsmp.T15_T16+para$dry.totcnsmp.T15)
+
+#17th time period stand alone (in.T16-out.T16)
+
+para$dry.cnsmp.T16_T17<-(para$dry.cat.in.T16-para$dry.cat.out.T16)
+
+#17th time period running total (T16_T16 + tot.T16)
+
+para$dry.totcnsmp.T17<-(para$dry.cnsmp.T16_T17+para$dry.totcnsmp.T16)
+
+#18th time period stand alone (in.T17-out.T17)
+
+para$dry.cnsmp.T17_T18<-(para$dry.cat.in.T17-para$dry.cat.out.T17)
+
+#18th time period running total (T17_T18 + tot.T17)
+
+para$dry.totcnsmp.T18<-(para$dry.cnsmp.T17_T18+para$dry.totcnsmp.T17)
+
+#19th time period stand alone (in.T18-out.T18)
+
+para$dry.cnsmp.T18_T19<-(para$dry.cat.in.T18-para$dry.cat.out.T18)
+
+#19th time period running total (T18_T19 + tot.T18)
+
+para$dry.totcnsmp.T19<-(para$dry.cnsmp.T18_T19+para$dry.totcnsmp.T18)
+
+#20th time period stand alone (in.T19-out.T19)
+
+para$dry.cnsmp.T19_T20<-(para$dry.cat.in.T19-para$dry.cat.out.T19)
+
+#20th time period running total (T19_T20 + tot.T19)
+
+para$dry.totcnsmp.T20<-(para$dry.cnsmp.T19_T20+para$dry.totcnsmp.T19)
+
+#21st time period stand alone (in.T20-out.T20)
+
+para$dry.cnsmp.T20_T21<-(para$dry.cat.in.T20-para$dry.cat.out.T20)
+
+#21st time period running total (T20_T21 + tot.T20)
+
+para$dry.totcnsmp.T21<-(para$dry.cnsmp.T20_T21+para$dry.totcnsmp.T20)
+
+#22nd time period stand alone (in.T21-out.T21)
+
+para$dry.cnsmp.T21_T22<-(para$dry.cat.in.T21-para$dry.cat.out.T21)
+
+#22nd time period runnint total (T21_T22 + tot.T21)
+
+para$dry.totcnsmp.T22<-(para$dry.cnsmp.T21_T22+para$dry.totcnsmp.T21)
+
+#23rd time period stand alone (in.T22-out.T22)
+
+para$dry.cnsmp.T22_T23<-(para$dry.cat.in.T22-para$dry.cat.out.T22)
+
+#23rd time period running total (T22_T23 + tot.T22)
+
+para$dry.totcnsmp.T23<-(para$dry.cnsmp.T22_T23+para$dry.totcnsmp.T22)
+
+#24th time period stand alone (in.T23-out.T23)
+
+para$dry.cnsmp.T23_T24<-(para$dry.cat.in.T23-para$dry.cat.out.T23)
+
+#24th time period running total (T23_T24 + tot.T23)
+
+para$dry.totcnsmp.T24<-(para$dry.cnsmp.T23_T24+para$dry.totcnsmp.T23)
+
+#25th time period stand alone (in.T24-out.T24)
+
+para$dry.cnsmp.T24_T25<-(para$dry.cat.in.T24-para$dry.cat.out.T24)
+
+#25th time period running total (T24_T25 + tot.T24)
+
+para$dry.totcnsmp.T25<-(para$dry.cnsmp.T24_T25+para$dry.totcnsmp.T24)
+
+#26th time period stand alone (in.T25-out.T25)
+
+para$dry.cnsmp.T25_T26<-(para$dry.cat.in.T25-para$dry.cat.out.T25)
+
+#26th time period running total (T25_T26 + tot.T25)
+
+para$dry.totcnsmp.T26<-(para$dry.cnsmp.T25_T26+para$dry.totcnsmp.T25)
+
+#27th time period stand alone (in.T26-out.T26)
+
+para$dry.cnsmp.T26_T27<-(para$dry.cat.in.T26-para$dry.cat.out.T26)
+
+#27th time period running total (T26_T27 + tot.T26)
+
+para$dry.totcnsmp.T27<-(para$dry.cnsmp.T26_T27+para$dry.totcnsmp.T26)
+
+#28th time period stand alone (in.T27-out.T27)
+
+para$dry.cnsmp.T27_T28<-(para$dry.cat.in.T27-para$dry.cat.out.T27)
+
+#28th time period running total (T27_T28 + tot.T27)
+
+para$dry.totcnsmp.T28<-(para$dry.cnsmp.T27_T28+para$dry.totcnsmp.T27)
+
+#29th time period stand alone (in.T28-out.T28)
+
+para$dry.cnsmp.T28_T29<-(para$dry.cat.in.T28-para$dry.cat.out.T28)
+
+#29th time period running total (T28_T29 + tot.T28)
+
+para$dry.totcnsmp.T29<-(para$dry.cnsmp.T28_T29+para$dry.totcnsmp.T28)
+
+#30th time period stand alone (in.T29-out.T29)
+
+para$dry.cnsmp.T29_T30<-(para$dry.cat.in.T29-para$dry.cat.out.T29)
+
+#30th time period running total (T29_T30 + tot.T29)
+
+para$dry.totcnsmp.T30<-(para$dry.cnsmp.T29_T30+para$dry.totcnsmp.T29)
+
+#31st time period stand alone (in.T30-out.T30)
+
+para$dry.cnsmp.T30_T31<-(para$dry.cat.in.T30-para$dry.cat.out.T30)
+
+#31st time period running total (T30_T31 + tot.T30)
+
+para$dry.totcnsmp.T31<-(para$dry.cnsmp.T30_T31+para$dry.totcnsmp.T30)
+
+#32nd time period stand alone (in.T31-out.T31)
+
+para$dry.cnsmp.T31_T32<-(para$dry.cat.in.T31-para$dry.cat.out.T31)
+
+#32nd time period running total (T31_T32 + tot.T31)
+
+para$dry.totcnsmp.T32<-(para$dry.cnsmp.T31_T32+para$dry.totcnsmp.T31)
+
+#33rd time period stand alone (in.T32-out.T32)
+
+para$dry.cnsmp.T32_T33<-(para$dry.cat.in.T32-para$dry.cat.out.T32)
+
+#33rd time period running total (T32_T33 + tot.T32)
+
+para$dry.totcnsmp.T33<-(para$dry.cnsmp.T32_T33+para$dry.totcnsmp.T32)
+
+#34th time period stand alone (in.T33-out.T33)
+
+para$dry.cnsmp.T33_T34<-(para$dry.cat.in.T33-para$dry.cat.out.T33)
+
+#34th time period running total (T33_T34 + tot.T33)
+
+para$dry.totcnsmp.T34<-(para$dry.cnsmp.T33_T34+para$dry.totcnsmp.T33)
+
+#35th time period stand alone (in.T34-out.T34)
+
+para$dry.cnsmp.T34_T35<-(para$dry.cat.in.T34-para$dry.cat.out.T34)
+
+#35th time period running total (T34_T35 + tot.T34)
+
+para$dry.totcnsmp.T35<-(para$dry.cnsmp.T34_T35+para$dry.totcnsmp.T34)
+
+#36th time period stand alone (in.T35-out.T35)
+
+para$dry.cnsmp.T35_T36<-(para$dry.cat.in.T35-para$dry.cat.out.T35)
+
+#36th time period running total (T35_T36 + tot.T35)
+
+para$dry.totcnsmp.T36<-(para$dry.cnsmp.T35_T36+para$dry.totcnsmp.T35)
+
+#37th time period stand alone (in.T36-out.T36)
+
+para$dry.cnsmp.T36_T37<-(para$dry.cat.in.T36-para$dry.cat.out.T36)
+
+#37th time period running total (T36_T37 + tot.T36)
+
+para$dry.totcnsmp.T37<-(para$dry.cnsmp.T36_T37+para$dry.totcnsmp.T36)
+
+
+```
+
+
+
+Making negative values = 1, so that models and graphs with log(tot.cnsmp) will run 
+
+EX:
+
+```{r}
+
+para$dry.cnsmp.T0_T1[para$dry.cnsmp.T0_T1 < 0] <- 1
+para$dry.cnsmp.T1_T2[para$dry.cnsmp.T1_T2 < 0] <- 1
+
+para$dry.totcnsmp.T1[para$dry.totcnsmp.T1 < 0] <- 1
+para$dry.totcnsmp.T2[para$dry.totcnsmp.T2 < 0] <- 1
+
+```
+
+
+```{r,include=FALSE}
+
+para$dry.cnsmp.T2_T3[para$dry.cnsmp.T2_T3 < 0] <- 1
+para$dry.cnsmp.T3_T4[para$dry.cnsmp.T3_T4 < 0] <- 1
+para$dry.cnsmp.T4_T5[para$dry.cnsmp.T4_T5 < 0] <- 1
+para$dry.cnsmp.T5_T6[para$dry.cnsmp.T5_T6 < 0] <- 1
+para$dry.cnsmp.T6_T7[para$dry.cnsmp.T6_T7 < 0] <- 1
+para$dry.cnsmp.T7_T8[para$dry.cnsmp.T7_T8 < 0] <- 1
+para$dry.cnsmp.T8_T9[para$dry.cnsmp.T8_T9 < 0] <- 1
+para$dry.cnsmp.T9_T10[para$dry.cnsmp.T9_T10 < 0] <- 1
+para$dry.cnsmp.T10_T11[para$dry.cnsmp.T10_T11 < 0] <- 1
+para$dry.cnsmp.T11_T12[para$dry.cnsmp.T11_T12 < 0] <- 1
+para$dry.cnsmp.T12_T13[para$dry.cnsmp.T12_T13 < 0] <- 1
+para$dry.cnsmp.T13_T14[para$dry.cnsmp.T13_T14 < 0] <- 1
+para$dry.cnsmp.T14_T15[para$dry.cnsmp.T14_T15 < 0] <- 1
+para$dry.cnsmp.T15_T16[para$dry.cnsmp.T15_T16 < 0] <- 1
+para$dry.cnsmp.T16_T17[para$dry.cnsmp.T16_T17 < 0] <- 1
+para$dry.cnsmp.T17_T18[para$dry.cnsmp.T17_T18 < 0] <- 1
+para$dry.cnsmp.T18_T19[para$dry.cnsmp.T18_T19 < 0] <- 1
+para$dry.cnsmp.T19_T20[para$dry.cnsmp.T19_T20 < 0] <- 1
+para$dry.cnsmp.T20_T21[para$dry.cnsmp.T20_T21 < 0] <- 1
+para$dry.cnsmp.T21_T22[para$dry.cnsmp.T21_T22 < 0] <- 1
+para$dry.cnsmp.T22_T23[para$dry.cnsmp.T22_T23 < 0] <- 1
+para$dry.cnsmp.T23_T24[para$dry.cnsmp.T23_T24 < 0] <- 1
+para$dry.cnsmp.T24_T25[para$dry.cnsmp.T24_T25 < 0] <- 1
+para$dry.cnsmp.T25_T26[para$dry.cnsmp.T25_T26 < 0] <- 1
+para$dry.cnsmp.T26_T27[para$dry.cnsmp.T26_T27 < 0] <- 1
+para$dry.cnsmp.T27_T28[para$dry.cnsmp.T27_T28 < 0] <- 1
+para$dry.cnsmp.T28_T29[para$dry.cnsmp.T28_T29 < 0] <- 1
+para$dry.cnsmp.T29_T30[para$dry.cnsmp.T29_T30 < 0] <- 1
+para$dry.cnsmp.T30_T31[para$dry.cnsmp.T30_T31 < 0] <- 1
+para$dry.cnsmp.T31_T32[para$dry.cnsmp.T31_T32 < 0] <- 1
+para$dry.cnsmp.T32_T33[para$dry.cnsmp.T32_T33 < 0] <- 1
+para$dry.cnsmp.T33_T34[para$dry.cnsmp.T33_T34 < 0] <- 1
+para$dry.cnsmp.T34_T35[para$dry.cnsmp.T34_T35 < 0] <- 1
+para$dry.cnsmp.T35_T36[para$dry.cnsmp.T35_T36 < 0] <- 1
+para$dry.cnsmp.T36_T37[para$dry.cnsmp.T36_T37 < 0] <- 1
+
+
+
+
+para$dry.totcnsmp.T3[para$dry.totcnsmp.T3 < 0] <- 1
+para$dry.totcnsmp.T4[para$dry.totcnsmp.T4 < 0] <- 1
+para$dry.totcnsmp.T5[para$dry.totcnsmp.T5 < 0] <- 1
+para$dry.totcnsmp.T6[para$dry.totcnsmp.T6 < 0] <- 1
+para$dry.totcnsmp.T7[para$dry.totcnsmp.T7 < 0] <- 1
+para$dry.totcnsmp.T8[para$dry.totcnsmp.T8 < 0] <- 1
+para$dry.totcnsmp.T9[para$dry.totcnsmp.T9 < 0] <- 1
+para$dry.totcnsmp.T10[para$dry.totcnsmp.T10 < 0] <- 1
+para$dry.totcnsmp.T11[para$dry.totcnsmp.T11 < 0] <- 1
+para$dry.totcnsmp.T12[para$dry.totcnsmp.T12 < 0] <- 1
+para$dry.totcnsmp.T13[para$dry.totcnsmp.T13 < 0] <- 1
+para$dry.totcnsmp.T14[para$dry.totcnsmp.T14 < 0] <- 1
+para$dry.totcnsmp.T15[para$dry.totcnsmp.T15 < 0] <- 1
+para$dry.totcnsmp.T16[para$dry.totcnsmp.T16 < 0] <- 1
+para$dry.totcnsmp.T17[para$dry.totcnsmp.T17 < 0] <- 1
+para$dry.totcnsmp.T18[para$dry.totcnsmp.T18 < 0] <- 1
+para$dry.totcnsmp.T19[para$dry.totcnsmp.T19 < 0] <- 1
+para$dry.totcnsmp.T20[para$dry.totcnsmp.T20 < 0] <- 1
+para$dry.totcnsmp.T21[para$dry.totcnsmp.T21 < 0] <- 1
+para$dry.totcnsmp.T22[para$dry.totcnsmp.T22 < 0] <- 1
+para$dry.totcnsmp.T23[para$dry.totcnsmp.T23 < 0] <- 1
+para$dry.totcnsmp.T24[para$dry.totcnsmp.T24 < 0] <- 1
+para$dry.totcnsmp.T25[para$dry.totcnsmp.T25 < 0] <- 1
+para$dry.totcnsmp.T26[para$dry.totcnsmp.T26 < 0] <- 1
+para$dry.totcnsmp.T27[para$dry.totcnsmp.T27 < 0] <- 1
+para$dry.totcnsmp.T28[para$dry.totcnsmp.T28 < 0] <- 1
+para$dry.totcnsmp.T29[para$dry.totcnsmp.T29 < 0] <- 1
+para$dry.totcnsmp.T30[para$dry.totcnsmp.T30 < 0] <- 1
+para$dry.totcnsmp.T31[para$dry.totcnsmp.T31 < 0] <- 1
+para$dry.totcnsmp.T32[para$dry.totcnsmp.T32 < 0] <- 1
+para$dry.totcnsmp.T33[para$dry.totcnsmp.T33 < 0] <- 1
+para$dry.totcnsmp.T34[para$dry.totcnsmp.T34 < 0] <- 1
+para$dry.totcnsmp.T35[para$dry.totcnsmp.T35 < 0] <- 1
+para$dry.totcnsmp.T36[para$dry.totcnsmp.T36 < 0] <- 1
+para$dry.totcnsmp.T37[para$dry.totcnsmp.T37 < 0] <- 1
+
+
+```
+
+
+
+Converting date into Julian day and calculating development time variables:
+
+```{r}
+#Parsing dates
+
+
+
+para$date.hatch<-parse_date_time(para$date.hatch,orders='mdy')
+para$date.died<-parse_date_time(para$date.died,orders='mdy')
+para$date.3<-parse_date_time(para$date.3,orders='mdy')
+para$date.ovp<-parse_date_time(para$date.ovp,orders='mdy')
+para$date.4<-parse_date_time(para$date.4,orders='mdy')
+para$date.5<-parse_date_time(para$date.5,orders='mdy')
+para$date.wander<-parse_date_time(para$date.wander,orders='mdy')
+para$date.em<-parse_date_time(para$date.em,orders='mdy')
+para$date.T1<-parse_date_time(para$date.T1,orders='mdy')
+para$date.T2<-parse_date_time(para$date.T2,orders='mdy')
+para$date.T3<-parse_date_time(para$date.T3,orders='mdy')
+para$date.T4<-parse_date_time(para$date.T4,orders='mdy')
+para$date.T5<-parse_date_time(para$date.T5,orders='mdy')
+para$date.T6<-parse_date_time(para$date.T6,orders='mdy')
+para$date.T7<-parse_date_time(para$date.T7,orders='mdy')
+para$date.T8<-parse_date_time(para$date.T8,orders='mdy')
+para$date.T9<-parse_date_time(para$date.T9,orders='mdy')
+para$date.T10<-parse_date_time(para$date.T10,orders='mdy')
+para$date.T11<-parse_date_time(para$date.T11,orders='mdy')
+para$date.T12<-parse_date_time(para$date.T12,orders='mdy')
+para$date.T13<-parse_date_time(para$date.T13,orders='mdy')
+para$date.T14<-parse_date_time(para$date.T14,orders='mdy')
+para$date.T15<-parse_date_time(para$date.T15,orders='mdy')
+para$date.T16<-parse_date_time(para$date.T16,orders='mdy')
+para$date.T17<-parse_date_time(para$date.T17,orders='mdy')
+para$date.T18<-parse_date_time(para$date.T18,orders='mdy')
+para$date.T19<-parse_date_time(para$date.T19,orders='mdy')
+para$date.T20<-parse_date_time(para$date.T20,orders='mdy')
+para$date.T21<-parse_date_time(para$date.T21,orders='mdy')
+para$date.T22<-parse_date_time(para$date.T22,orders='mdy')
+para$date.T23<-parse_date_time(para$date.T23,orders='mdy')
+para$date.T24<-parse_date_time(para$date.T24,orders='mdy')
+para$date.T25<-parse_date_time(para$date.T25,orders='mdy')
+para$date.T26<-parse_date_time(para$date.T26,orders='mdy')
+para$date.T27<-parse_date_time(para$date.T27,orders='mdy')
+para$date.T28<-parse_date_time(para$date.T28,orders='mdy')
+para$date.T29<-parse_date_time(para$date.T29,orders='mdy')
+para$date.T30<-parse_date_time(para$date.T30,orders='mdy')
+para$date.T31<-parse_date_time(para$date.T31,orders='mdy')
+para$date.T32<-parse_date_time(para$date.T32,orders='mdy')
+para$date.T33<-parse_date_time(para$date.T33,orders='mdy')
+para$date.T34<-parse_date_time(para$date.T34,orders='mdy')
+para$date.T35<-parse_date_time(para$date.T35,orders='mdy')
+para$date.T36<-parse_date_time(para$date.T36,orders='mdy')
+para$date.T37<-parse_date_time(para$date.T37,orders='mdy')
+para$date.T38<-parse_date_time(para$date.T38,orders='mdy')
+
+
+#Converting to Julian days
+
+
+para$date.ovp<-format(para$date.ovp, "%j")
+para$date.ovp<-as.numeric(para$date.ovp)
+
+para$date.em<-format(para$date.em, "%j")
+para$date.em<-as.numeric(para$date.em)
+
+para$date.hatch<-format(para$date.hatch,"%j")
+para$date.hatch<-as.numeric(para$date.hatch)
+
+para$date.died<-format(para$date.died,"%j")
+para$date.died<-as.numeric(para$date.died)
+
+para$date.3<-format(para$date.3,"%j")
+para$date.3<-as.numeric(para$date.3)
+
+para$date.4<-format(para$date.4,"%j")
+para$date.4<-as.numeric(para$date.4)
+
+para$date.5<-format(para$date.5,"%j")
+para$date.5<-as.numeric(para$date.5)
+
+para$date.wander<-format(para$date.wander,"%j")
+para$date.wander<-as.numeric(para$date.wander)
+
+para$date.T1<-format(para$date.T1,"%j")
+para$date.T1<-as.numeric(para$date.T1)
+
+para$date.T2<-format(para$date.T2,"%j")
+para$date.T2<-as.numeric(para$date.T2)
+
+para$date.T3<-format(para$date.T3,"%j")
+para$date.T3<-as.numeric(para$date.T3)
+
+para$date.T4<-format(para$date.T4,"%j")
+para$date.T4<-as.numeric(para$date.T4)
+
+para$date.T5<-format(para$date.T5,"%j")
+para$date.T5<-as.numeric(para$date.T5)
+
+para$date.T6<-format(para$date.T6,"%j")
+para$date.T6<-as.numeric(para$date.T6)
+
+para$date.T7<-format(para$date.T7,"%j")
+para$date.T7<-as.numeric(para$date.T7)
+
+para$date.T8<-format(para$date.T8,"%j")
+para$date.T8<-as.numeric(para$date.T8)
+
+para$date.T9<-format(para$date.T9,"%j")
+para$date.T9<-as.numeric(para$date.T9)
+
+para$date.T10<-format(para$date.T10,"%j")
+para$date.T10<-as.numeric(para$date.T10)
+
+para$date.T11<-format(para$date.T11,"%j")
+para$date.T11<-as.numeric(para$date.T11)
+
+para$date.T12<-format(para$date.T12,"%j")
+para$date.T12<-as.numeric(para$date.T12)
+
+para$date.T13<-format(para$date.T13,"%j")
+para$date.T13<-as.numeric(para$date.T13)
+
+para$date.T14<-format(para$date.T14,"%j")
+para$date.T14<-as.numeric(para$date.T14)
+
+para$date.T15<-format(para$date.T15,"%j")
+para$date.T15<-as.numeric(para$date.T15)
+
+para$date.T16<-format(para$date.T16,"%j")
+para$date.T16<-as.numeric(para$date.T16)
+
+para$date.T17<-format(para$date.T17,"%j")
+para$date.T17<-as.numeric(para$date.T17)
+
+para$date.T18<-format(para$date.T18,"%j")
+para$date.T18<-as.numeric(para$date.T18)
+
+para$date.T19<-format(para$date.T19,"%j")
+para$date.T19<-as.numeric(para$date.T19)
+
+para$date.T20<-format(para$date.T20,"%j")
+para$date.T20<-as.numeric(para$date.T20)
+
+para$date.T21<-format(para$date.T21,"%j")
+para$date.T21<-as.numeric(para$date.T21)
+
+para$date.T22<-format(para$date.T22,"%j")
+para$date.T22<-as.numeric(para$date.T22)
+
+para$date.T23<-format(para$date.T23,"%j")
+para$date.T23<-as.numeric(para$date.T23)
+
+para$date.T24<-format(para$date.T24,"%j")
+para$date.T24<-as.numeric(para$date.T24)
+
+para$date.T25<-format(para$date.T25,"%j")
+para$date.T25<-as.numeric(para$date.T25)
+
+para$date.T26<-format(para$date.T26,"%j")
+para$date.T26<-as.numeric(para$date.T26)
+
+para$date.T27<-format(para$date.T27,"%j")
+para$date.T27<-as.numeric(para$date.T27)
+
+para$date.T28<-format(para$date.T28,"%j")
+para$date.T28<-as.numeric(para$date.T28)
+
+para$date.T29<-format(para$date.T29,"%j")
+para$date.T29<-as.numeric(para$date.T29)
+
+para$date.T30<-format(para$date.T30,"%j")
+para$date.T30<-as.numeric(para$date.T30)
+
+para$date.T31<-format(para$date.T31,"%j")
+para$date.T31<-as.numeric(para$date.T31)
+
+para$date.T32<-format(para$date.T32,"%j")
+para$date.T32<-as.numeric(para$date.T32)
+
+para$date.T33<-format(para$date.T33,"%j")
+para$date.T33<-as.numeric(para$date.T33)
+
+para$date.T34<-format(para$date.T34,"%j")
+para$date.T34<-as.numeric(para$date.T34)
+
+para$date.T35<-format(para$date.T35,"%j")
+para$date.T35<-as.numeric(para$date.T35)
+
+para$date.T36<-format(para$date.T36,"%j")
+para$date.T36<-as.numeric(para$date.T36)
+
+para$date.T37<-format(para$date.T37,"%j")
+para$date.T37<-as.numeric(para$date.T37)
+
+para$date.T38<-format(para$date.T38,"%j")
+para$date.T38<-as.numeric(para$date.T38)
+
+
+
+para$int.wasp.dev<-para$date.em-para$date.ovp
+
+para$timeto3<-para$date.3-para$date.hatch
+
+para$int.3<-para$date.4<-para$date.3
+
+para$timeto4<-para$timeto3+para$int.3
+
+para$int.4<-para$date.5-para$date.4
+
+para$timeto5<-para$timeto4+para$int.4
+
+para$int.5.p<-para$date.em-para$date.5
+  
+para$int.5.c<-para$date.wander-para$date.5
+
+para$int.5.c[is.na(para$int.5.c)] <- 0
+para$int.5.p[is.na(para$int.5.p)] <- 0
+
+para$int.5<-para$int.5.c+para$int.5.p
+
+para$int.5[para$int.5==0]<-NA
+
+
+para$ttwand<-para$date.wander-para$date.hatch
+
+
+para$stsp.llmort<-para$num.fail.spin/para$num.em
+
+
+```
+
+
+
+
+
+Write data frame with consumption data into a csv file (will also manually add the new columns to the CPT full excel file)
+
+```{r}
+write.csv(para,"cpt gr wide.csv", row.names = FALSE, quote = FALSE)
+```
+
+
+
+NOTE: combined this and other cleaning scripts into one master cleaning script! Will keep this rmd as an explanation of the processes, but will use other script for actual data cleaning. 
+
+NOTE: When making adjustments, from now on use raw cpt.csv--cpt gr wide now has julian dates and things that can't be converted back to raw format easily.

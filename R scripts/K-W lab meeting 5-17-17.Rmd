@@ -1,0 +1,435 @@
+---
+title: "K/W lab meeting 3-17"
+author: "Liz"
+date: "May 16, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,include=FALSE,warning=FALSE}
+library(dplyr)
+library(tidyr)
+library(reshape2)
+library(ggplot2)
+library(gridExtra)
+library(Rmisc)
+library(readr)
+library(nlme)
+
+cpt <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt.gr.long.csv", 
+    col_types = cols(temp = col_factor(levels = c("20", 
+        "25", "30"))))
+View(cpt)
+
+wide <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt gr wide.csv", 
+    col_types = cols(temp = col_factor(levels = c("20", 
+        "25", "30")), treatment = col_factor(levels = c("control", 
+        "para"))))
+View(wide)
+
+
+#Dividing by temperature
+
+cpt.30<-subset(cpt,temp=="30")
+View(cpt.30)
+
+cpt.25<-subset(cpt,temp=="25")
+
+cpt.20<-subset(cpt,temp=="20")
+
+
+avg <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt avg data.csv")
+View(avg)
+avg$temp<-as.factor(avg$temp)
+avg$treat<-as.factor(avg$treat)
+
+
+avg.long <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt avg long.csv")
+View(avg.long)
+avg.long$temp<-as.factor(avg.long$temp)
+avg.long$treat<-as.factor(avg.long$treat)
+
+
+
+```
+
+
+
+###Plot of actual age and mass, all temps and individuals
+
+```{r,echo=FALSE,warning=FALSE}
+
+k<- ggplot(cpt, aes(age, log(mass), group=interaction(bug.id, temp), color=factor(temp)))
+k+geom_line(aes(linetype=treatment)
+)+theme_bw(
+)+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.border= element_blank(), 
+        axis.line.x = element_line(color="black", size = 1.5),
+        axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+)+scale_color_manual(values=c( "lightblue","darkblue", "magenta"),
+                     guide=guide_legend(title="temperature"))
+
+```
+
+<br>
+<br>
+<br>
+
+
+###Plot of actual age and consumption, all temps and individuals
+
+```{r,warning=FALSE,echo=FALSE}
+
+k<- ggplot(cpt, aes(age, log(tot.cnsmp), group=interaction(bug.id, temp), color=factor(temp)))
+k+geom_line(aes(linetype=treatment)
+)+theme_bw(
+)+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.border= element_blank(), 
+        axis.line.x = element_line(color="black", size = 1.5),
+        axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+)+scale_color_manual(values=c( "lightblue","darkblue", "magenta"),
+                     guide=guide_legend(title="temperature"))
+
+```
+
+<br>
+<br>
+<br>
+
+
+
+###Preliminary mixed effect models looking at mass, age, temperature and treatment
+
+ID as a random intercept
+
+```{r}
+
+massmm.mod<-lme(log(mass)~temp*treatment*age,random=~1|bug.id,data=cpt,method="ML",na.action = na.omit)
+
+anova(massmm.mod)
+
+```
+
+<br>
+<br>
+<br>
+
+###Average mass by average age
+
+```{r,echo=FALSE}
+
+theme_set(theme_classic(base_size=14))
+
+#Facet by treatment
+avg.plot <- ggplot(avg.long, aes(x=age,y=log.mass,colour=temp,group=temp))
+avg.plot<-avg.plot+geom_point()+geom_errorbar(aes(ymin=log.mass-log.mass.se,ymax=log.mass+log.mass.se),width=.2
+)+geom_errorbarh(aes(xmin=age-age.se,xmax=age+age.se)
+)+geom_line(aes(linetype=temp,color=temp),size=1
+)+scale_color_manual(values=c("#56B4E9","#000000","#E69F00"), 
+                     name="Temperature [C]",breaks=c("20","25","30"),
+                     labels=c("20","25","30"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_discrete(name="Temperature [C]",breaks=c("20","25","30"),
+                          labels=c("20","25","30")
+)+labs(title="Avg log(mass) X avg age",x="avg age [hour]",
+       y="Avg log(mass) [mg]"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1)
+)+facet_wrap(~treat)
+
+
+
+avg.plot
+
+```
+
+<br>
+<br>
+<br>
+
+###Preliminary mixed effect models looking at consumption, age, temperature and treatment
+
+ID as a random intercept
+<br>
+<br>
+
+
+```{r}
+cnsmp.mod<-lme(log(tot.cnsmp)~treatment*temp*age,random=~1|bug.id,data=cpt,method="ML",na.action = na.omit)
+anova(cnsmp.mod)
+```
+<br>
+<br>
+<br>
+
+###Average consumption by average age
+
+```{r,echo=FALSE}
+#Facet by treatment
+avg.plot <- ggplot(avg.long, aes(x=age,y=log.cnsmp,colour=temp,group=temp))
+avg.plot<-avg.plot+geom_point()+geom_errorbar(aes(ymin=log.cnsmp-log.cnsmp.se,ymax=log.cnsmp+log.cnsmp.se),width=.2
+)+geom_errorbarh(aes(xmin=age-age.se,xmax=age+age.se)
+)+geom_line(aes(linetype=temp,color=temp),size=1
+)+scale_color_manual(values=c("#56B4E9","#000000","#E69F00"), 
+                     name="Temperature [C]",breaks=c("20","25","30"),
+                     labels=c("20","25","30"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_discrete(name="Temperature [C]",breaks=c("20","25","30"),
+                          labels=c("20","25","30")
+)+scale_y_continuous(limits=c(0,9),breaks = c(4,6,8)
+)+labs(title="Avg log(cnsmp) X avg age",x="avg age [hour]",
+       y="Avg log(cnsmp) [mg]"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1)
+)+facet_wrap(~treat)
+
+avg.plot
+
+
+```
+
+<br>
+<br>
+<br>
+
+###Caterpillar development time to the 4th instar:
+
+####Linear model:
+
+
+```{r}
+tt4.mod2<-lm(timeto4~temp*treatment+num.em,data=wide,na.action = na.omit)
+anova(tt4.mod2)
+
+```
+
+
+```{r}
+summary(tt4.mod2)
+
+```
+
+<br>
+<br>
+<br>
+
+####Average development time to the 4th instar by temperature
+
+```{r,echo=FALSE}
+tt4.sum<-summarySE(wide, measurevar="timeto4", 
+                     groupvars=c("temp","treatment"),na.rm=TRUE)
+tt4.sum
+
+
+tt4plot <- ggplot(tt4.sum, aes(x=temp,y=timeto4,group=treatment,color=treatment))
+tt4plot<-tt4plot+geom_point()+geom_errorbar(aes(ymin=timeto4-se,ymax=timeto4+se),width=.2
+)+geom_line(aes(linetype=treatment,color=treatment)
+)+scale_color_manual(values=c("black","red"), 
+                     name="Treatment",breaks=c("control","wide"),
+                     labels=c("Control","widesitized"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_discrete(name="Treatment",breaks=c("control","wide"),
+                          labels=c("Control","widesitized")
+)+labs(title="Dev time to 4th instar",x="Temperature [C]",
+       y="Caterpillar dev [days]"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1))
+
+tt4plot
+
+
+```
+
+<br>
+<br>
+<br>
+
+
+
+### time to 5 model
+
+```{r}
+tt5.mod2<-lm(timeto5~temp*treatment+num.em,data=wide,na.action = na.omit)
+anova(tt5.mod2)
+
+
+```
+
+```{r}
+summary(tt5.mod2)
+```
+
+<br>
+<br>
+<br>
+
+
+###Plot of caterpillar development time to the 5th instar
+
+```{r,echo=FALSE}
+tt5.sum<-summarySE(wide, measurevar="timeto5", 
+                   groupvars=c("temp","treatment"),na.rm=TRUE)
+tt5.sum
+
+
+tt5plot <- ggplot(tt5.sum, aes(x=temp,y=timeto5,group=treatment,color=treatment))
+tt5plot<-tt5plot+geom_point()+geom_errorbar(aes(ymin=timeto5-se,ymax=timeto5+se),width=.2
+)+geom_line(aes(linetype=treatment,color=treatment)
+)+scale_color_manual(values=c("black","red"), 
+                     name="Treatment",breaks=c("control","wide"),
+                     labels=c("Control","widesitized"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_discrete(name="Treatment",breaks=c("control","wide"),
+                          labels=c("Control","widesitized")
+)+labs(title="Dev time to 5th instar",x="Temperature [C]",
+       y="Caterpillar dev [days]"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1))
+
+tt5plot
+
+```
+
+<br>
+<br>
+<br>
+
+
+
+###Development time to wandering in control caterpillars
+
+```{r,include=FALSE}
+control<-subset(wide,treatment=="control")
+```
+
+
+
+```{r}
+ttw.mod<-lm(ttwand~temp,data=control,na.action = na.omit)
+anova(ttw.mod)
+```
+
+```{r,echo=FALSE}
+ttw.plot<-ggplot(control,aes(x=temp,y=ttwand))
+ttw.plot<-ttw.plot+geom_boxplot()
+ttw.plot
+```
+
+<br>
+<br>
+<br>
+
+
+
+###Time to wasp emergence
+
+
+```{r}
+wm.mod<-lm(int.wasp.dev~temp*num.em,data=wide,na.action = na.omit)
+anova(wm.mod)
+```
+
+```{r}
+
+summary(wm.mod)
+```
+
+
+<br>
+<br>
+<br>
+
+
+###Average wasp development time
+
+```{r,echo=FALSE}
+wm.sum<-summarySE(wide, measurevar="int.wasp.dev", 
+                  groupvars=c("temp"),na.rm=TRUE)
+wm.sum
+
+wmplot <- ggplot(wm.sum, aes(x=temp,y=int.wasp.dev,group=1))
+wmplot<-wmplot+geom_point()+geom_errorbar(aes(ymin=int.wasp.dev-se,ymax=int.wasp.dev+se),width=.2
+)+geom_line(
+)+labs(title="Wasp dev",x="Temperature [C]",
+       y="wasp dev [days]"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1))
+
+wmplot
+```
+
+<br>
+<br>
+<br>
+
+###Wasp development by number emerged
+
+```{r,echo=FALSE}
+wmplot<-ggplot(wide,aes(x=num.em,y=int.wasp.dev,group=temp,color=temp))
+wmplot<-wmplot+geom_point()+scale_color_manual(values=c("#56B4E9","#000000","#E69F00"), 
+                                               name="Temperature [C]",breaks=c("20","25","30"),
+                                               labels=c("20","25","30"),guide=guide_legend(keywidth=1.8)
+)+geom_jitter()+geom_smooth(method=lm,se=FALSE)
+wmplot
+
+```
+
+<br>
+<br>
+<br>
+
+
+
+###Wasp late larval mortality
+
+```{r,include=FALSE}
+paratrt<-subset(wide,treatment=="para")
+```
+
+
+
+```{r}
+stsllmort.mod<-lm(stsp.llmort~temp*num.em,data=paratrt,na.action = na.omit)
+anova(stsllmort.mod)
+```
+
+```{r}
+summary(stsllmort.mod)
+```
+
+
+```{r,echo=FALSE}
+ssllm.plot<-ggplot(paratrt,aes(x=temp,y=stsp.llmort))
+ssllm.plot<-ssllm.plot+geom_boxplot()
+ssllm.plot
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,24 @@
+> cd5.sum
+  temp treatment  N      cd5       sd       se       ci
+1   20   control  0      NaN       NA       NA       NA
+2   20      para 30 1146.687 403.9468 73.75026 150.8362
+3   25   control  0      NaN       NA       NA       NA
+4   25      para 30 1270.441 416.7472 76.08729 155.6160
+5   30   control  0      NaN       NA       NA       NA
+6   30      para 38 1251.769 523.4426 84.91361 172.0513
+> cd5.c.sum<-summarySE(wide.cl, measurevar = "cd5.c", groupvars = c("temp", "treatment"), na.rm=TRUE)
+Warning message:
+In qt(conf.interval/2 + 0.5, datac$N - 1) : NaNs produced
+> cd5.c.sum
+  temp treatment  N    cd5.c       sd        se       ci
+1   20   control 35 3853.068 949.1430 160.43444 326.0420
+2   20      para  0      NaN       NA        NA       NA
+3   25   control 38 4257.601 861.4514 139.74587 283.1520
+4   25      para  0      NaN       NA        NA       NA
+5   30   control 39 3408.353 591.5433  94.72274 191.7562
+6   30      para  0      NaN       NA        NA       NA
+
+
+20C: 3.36
+25C: 3.35
+30C: 2.72

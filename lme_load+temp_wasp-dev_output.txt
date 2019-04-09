@@ -1,0 +1,41 @@
+> wdev.mod3<-lme(age.em~temp*resc.ld,random=~1|bug.id,data=para,na.action=na.omit,method="ML")
+> anova(wdev.mod3)
+             numDF denDF   F-value p-value
+(Intercept)      1   133 14459.938  <.0001
+temp             2   133   689.379  <.0001
+resc.ld          1   133    47.818  <.0001
+temp:resc.ld     2   133    14.903  <.0001
+> summary(wdev.mod3)
+Linear mixed-effects model fit by maximum likelihood
+ Data: para 
+       AIC      BIC    logLik
+  1406.498 1429.974 -695.2492
+
+Random effects:
+ Formula: ~1 | bug.id
+        (Intercept) Residual
+StdDev:    33.68546 12.63205
+
+Fixed effects: age.em ~ temp * resc.ld 
+                   Value Std.Error  DF   t-value p-value
+(Intercept)     456.7867  10.31729 133  44.27390   0e+00
+temp25         -157.6884  14.98198 133 -10.52521   0e+00
+temp30         -203.3046  14.94093 133 -13.60723   0e+00
+resc.ld         211.1583  25.19564 133   8.38075   0e+00
+temp25:resc.ld -147.0102  35.54532 133  -4.13585   1e-04
+temp30:resc.ld -187.0337  36.43368 133  -5.13354   0e+00
+ Correlation: 
+               (Intr) temp25 temp30 rsc.ld tm25:.
+temp25         -0.689                            
+temp30         -0.691  0.476                     
+resc.ld        -0.857  0.590  0.592              
+temp25:resc.ld  0.608 -0.862 -0.420 -0.709       
+temp30:resc.ld  0.593 -0.408 -0.860 -0.692  0.490
+
+Standardized Within-Group Residuals:
+       Min         Q1        Med         Q3        Max 
+-1.0201819 -0.1948169 -0.0425771  0.1234422  1.9776567 
+
+Number of Observations: 139
+Number of Groups: 139 
+> 

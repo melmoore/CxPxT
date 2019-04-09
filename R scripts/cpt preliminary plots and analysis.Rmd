@@ -1,0 +1,1378 @@
+---
+title: "cpt prelim analysis"
+author: "Liz"
+date: "May 7, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load necessary libraries:
+
+```{r,include=FALSE,warning=FALSE,message=FALSE}
+library(dplyr)
+library(tidyr)
+library(reshape2)
+library(ggplot2)
+library(gridExtra)
+library(Rmisc)
+library(readr)
+library(nlme)
+library(lme4)
+```
+
+
+Import data:
+
+```{r}
+cpt <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt.gr.long.csv", 
+    col_types = cols(temp = col_factor(levels = c("20", 
+        "25", "30"))))
+cpt$log.mT0<-log(cpt$mass.T0)
+cpt$log.mass<-log(cpt$mass)
+cpt$log.cnsmp<-log(cpt$tot.cnsmp)
+View(cpt)
+
+wide <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt gr wide.csv", 
+    col_types = cols(temp = col_factor(levels = c("20", 
+        "25", "30")), treatment = col_factor(levels = c("control", 
+        "para"))))
+View(wide)
+```
+
+
+Subsetting by temperature
+
+```{r}
+#Dividing by temperature
+
+cpt.30<-subset(cpt,temp=="30")
+
+cpt.25<-subset(cpt,temp=="25")
+
+cpt.20<-subset(cpt,temp=="20")
+
+```
+
+
+
+
+##Preliminary Plots
+
+
+Plot of expected age and mass, all temps and individuals
+
+```{r,ehco=FALSE,warning=FALSE}
+
+k<- ggplot(cpt, aes(expct.hour, log(mass), group=interaction(bug.id, temp), color=factor(temp)))
+k+geom_line(aes(linetype=treatment)
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c( "lightblue","darkblue", "magenta"),
+                    guide=guide_legend(title="temperature"))
+  
+```
+
+
+Plot of actual age and mass, all temps and individuals
+
+```{r,ehco=FALSE,warning=FALSE}
+
+k<- ggplot(cpt, aes(age, log(mass), group=interaction(bug.id, temp), color=factor(temp)))
+k+geom_line(aes(linetype=treatment)
+)+theme_bw(
+)+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.border= element_blank(), 
+        axis.line.x = element_line(color="black", size = 1.5),
+        axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+)+scale_color_manual(values=c( "lightblue","darkblue", "magenta"),
+                     guide=guide_legend(title="temperature"))
+
+```
+
+
+Plot of actual age and mass, all individuals, faceted by temp
+
+```{r,echo=FALSE,warning=FALSE}
+#With facets
+
+
+k<- ggplot(cpt, aes(age, log(mass), group=interaction(bug.id, temp), color=factor(temp)))
+k+geom_line(aes(linetype=treatment)
+)+theme_bw(
+)+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.border= element_blank(), 
+        axis.line.x = element_line(color="black", size = 1.5),
+        axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+        )+scale_color_manual(values=c("#000000", "#E69F00", "#56B4E9"),
+                     guide=guide_legend(title="temperature")
+        )+facet_wrap(~temp,nrow=3)
+
+```
+
+
+
+
+Plotting age and mass for each temperature separately:
+
+30C
+
+```{r,echo=FALSE,warning=FALSE}
+
+k<- ggplot(cpt.30,aes(age,log(mass),group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                    guide=guide_legend(title="treatment")
+            )+scale_y_continuous(limits=c(3,11),breaks = c(4,6,8,10)
+            )+labs(title="30C treatment")
+
+```
+
+25C
+
+```{r,echo=FALSE,warning=FALSE}
+
+k<- ggplot(cpt.25,aes(age,log(mass),group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                     guide=guide_legend(title="treatment")
+            )+scale_y_continuous(limits=c(3,11),breaks = c(4,6,8,10)         
+            )+labs(title="25C treatment")
+
+```
+
+
+20C
+
+```{r,echo=FALSE,warning=FALSE}
+
+k<- ggplot(cpt.20,aes(age,log(mass),group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                     guide=guide_legend(title="treatment")
+            )+scale_y_continuous(limits=c(3,11),breaks = c(4,6,8,10)         
+            )+labs(title="20C treatment")
+
+```
+
+
+
+###Plotting mass gained since the start of the 3rd instar
+
+
+```{r,ehco=FALSE,warning=FALSE}
+
+k<- ggplot(cpt, aes(age, log(mass.gain), group=interaction(bug.id, temp), color=factor(temp)))
+k+geom_line(aes(linetype=treatment)
+)+theme_bw(
+)+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.border= element_blank(), 
+        axis.line.x = element_line(color="black", size = 1.5),
+        axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+)+scale_color_manual(values=c( "lightblue","darkblue", "magenta"),
+                     guide=guide_legend(title="temperature"))
+
+```
+
+
+
+
+
+Plotting age and mass.gain for each temperature separately:
+
+30C
+
+```{r,echo=FALSE,warning=FALSE}
+
+k<- ggplot(cpt.30,aes(age,log(mass.gain),group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                    guide=guide_legend(title="treatment")
+            )+scale_y_continuous(limits=c(3,11),breaks = c(4,6,8,10)
+            )+labs(title="30C treatment")
+
+```
+
+
+
+25C
+
+```{r,echo=FALSE,warning=FALSE}
+
+k<- ggplot(cpt.25,aes(age,log(mass.gain),group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                     guide=guide_legend(title="treatment")
+            )+scale_y_continuous(limits=c(3,11),breaks = c(4,6,8,10)         
+            )+labs(title="25C treatment")
+
+```
+
+
+
+
+20C
+
+```{r,echo=FALSE,warning=FALSE}
+
+k<- ggplot(cpt.20,aes(age,log(mass.gain),group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                     guide=guide_legend(title="treatment")
+            )+scale_y_continuous(limits=c(3,11),breaks = c(4,6,8,10)         
+            )+labs(title="20C treatment")
+
+```
+
+
+
+
+
+
+
+###Plotting consumption and age
+
+
+Plot of actual age and consumption, all temps and individuals
+
+```{r,warning=FALSE}
+
+k<- ggplot(cpt, aes(age, log(tot.cnsmp), group=interaction(bug.id, temp), color=factor(temp)))
+k+geom_line(aes(linetype=treatment)
+)+theme_bw(
+)+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.border= element_blank(), 
+        axis.line.x = element_line(color="black", size = 1.5),
+        axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+)+scale_color_manual(values=c( "lightblue","darkblue", "magenta"),
+                     guide=guide_legend(title="temperature"))
+
+```
+
+There are some negative values in here--need to decide what we should do with those--leave as negative, or make 0s or NAs
+
+Tot.cnsmp not logged:
+
+```{r,warning=FALSE}
+
+k<- ggplot(cpt, aes(age, tot.cnsmp, group=interaction(bug.id, temp), color=factor(temp)))
+k+geom_line(aes(linetype=treatment)
+)+theme_bw(
+)+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.border= element_blank(), 
+        axis.line.x = element_line(color="black", size = 1.5),
+        axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+)+scale_color_manual(values=c( "lightblue","darkblue", "magenta"),
+                     guide=guide_legend(title="temperature"))
+
+```
+
+
+
+
+
+
+
+
+
+Plot of actual age and consumption, all individuals, faceted by temp
+
+```{r,echo=FALSE,warning=FALSE}
+
+k<- ggplot(cpt, aes(age, log(tot.cnsmp), group=interaction(bug.id, temp), color=factor(temp)))
+k+geom_line(aes(linetype=treatment)
+)+theme_bw(
+)+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.border= element_blank(), 
+        axis.line.x = element_line(color="black", size = 1.5),
+        axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+        )+scale_color_manual(values=c("#000000", "#E69F00", "#56B4E9"),
+                     guide=guide_legend(title="temperature")
+        )+facet_wrap(~temp,nrow=3)
+
+```
+
+
+
+
+Plotting age and consumption for each temperature separately:
+
+30C
+
+```{r,echo=FALSE,warning=FALSE}
+
+k<- ggplot(cpt.30,aes(age,log(tot.cnsmp),group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                    guide=guide_legend(title="treatment")
+            )+scale_y_continuous(limits=c(3,11),breaks = c(4,6,8,10)
+            )+labs(title="30C treatment")
+
+```
+
+25C
+
+```{r,echo=FALSE,warning=FALSE}
+
+k<- ggplot(cpt.25,aes(age,log(tot.cnsmp),group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                     guide=guide_legend(title="treatment")
+            )+scale_y_continuous(limits=c(3,11),breaks = c(4,6,8,10)         
+            )+labs(title="25C treatment")
+
+```
+
+
+20C
+
+```{r,echo=FALSE,warning=FALSE}
+
+k<- ggplot(cpt.20,aes(age,log(tot.cnsmp),group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                     guide=guide_legend(title="treatment")
+            )+scale_y_continuous(limits=c(3,11),breaks = c(4,6,8,10)         
+            )+labs(title="20C treatment")
+
+
+
+k<- ggplot(cpt.20,aes(age,tot.cnsmp,group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                     guide=guide_legend(title="treatment")
+            )+labs(title="20C treatment")
+
+```
+
+
+
+
+Plotting log(mass) by log(total consumption)
+
+
+```{r}
+k<- ggplot(cpt, aes(log(tot.cnsmp),log(mass), group=interaction(bug.id, temp), color=factor(temp)))
+k+geom_line(aes(linetype=treatment)
+)+theme_bw(
+)+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.border= element_blank(), 
+        axis.line.x = element_line(color="black", size = 1.5),
+        axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+)+scale_color_manual(values=c( "lightblue","darkblue", "magenta"),
+                     guide=guide_legend(title="temperature"))
+```
+
+
+
+Plotting mass by total consumption separately for each temperature:
+
+
+30C-no logging of data
+
+```{r}
+k<- ggplot(cpt.30,aes(tot.cnsmp,mass,group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                     guide=guide_legend(title="treatment")
+            )+labs(title="30C treatment")
+```
+
+
+
+
+
+30C--log(tot.cnsmp) and log(mass)
+
+```{r}
+k<- ggplot(cpt.30,aes(log(tot.cnsmp),log(mass),group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                     guide=guide_legend(title="treatment")
+            )+scale_y_continuous(limits=c(3,11),breaks = c(4,6,8,10)         
+            )+labs(title="30C treatment")
+```
+
+
+
+25C--no logging of data
+
+```{r}
+k<- ggplot(cpt.25,aes(tot.cnsmp, mass,group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                     guide=guide_legend(title="treatment")
+            )+labs(title="25C treatment")
+```
+
+
+
+
+25C--log(tot.cnsmp) and log(mass)
+
+```{r}
+k<- ggplot(cpt.25,aes(log(tot.cnsmp),log(mass),group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                     guide=guide_legend(title="treatment")
+            )+scale_y_continuous(limits=c(3,11),breaks = c(4,6,8,10)         
+            )+labs(title="25C treatment")
+```
+
+
+
+20C--no logging of data
+
+
+```{r}
+k<- ggplot(cpt.20,aes(tot.cnsmp, mass,group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                     guide=guide_legend(title="treatment")
+            )+labs(title="20C treatment")
+```
+
+
+
+20C--log(tot.cnsmp) and log(mass)
+
+```{r}
+k<- ggplot(cpt.20,aes(log(tot.cnsmp), log(mass),group=interaction(bug.id, temp), color=treatment))
+k+geom_line(aes(linetype=treatment),size=.7
+            )+theme_bw(
+            )+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(), panel.border= element_blank(), 
+                    axis.line.x = element_line(color="black", size = 1.5),
+                    axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+            )+scale_color_manual(values=c("black","red"),
+                     guide=guide_legend(title="treatment")
+            )+labs(title="20C treatment")
+```
+
+
+
+
+###SummarySEs of variables
+
+Age at 4th instar:
+
+```{r}
+
+age4.sum <- summarySE(wide, measurevar="age.4", 
+                    groupvars=c("temp", "treatment"),na.rm=TRUE)
+
+age4.sum
+
+```
+
+
+Age at 5th instar
+
+```{r}
+age5.sum <- summarySE(wide, measurevar="age.5", 
+                      groupvars=c("temp", "treatment"),na.rm=TRUE)
+
+age5.sum
+
+```
+
+Age at wandering
+
+```{r}
+agewand.sum<- summarySE(wide, measurevar="age.wander", 
+                        groupvars=c("temp"),na.rm=TRUE)
+
+agewand.sum
+
+```
+
+
+Age at emergence
+
+```{r}
+ageem.sum<- summarySE(wide, measurevar="age.em", 
+                      groupvars=c("temp"),na.rm=TRUE)
+
+ageem.sum
+
+```
+
+
+Mass at 3rd instar:
+
+```{r}
+mass3.sum<-summarySE(wide, measurevar="mass.T0", 
+                     groupvars=c("temp", "treatment"),na.rm=TRUE)
+mass3.sum
+
+```
+
+
+Mass at 4th intar:
+
+```{r}
+mass4.sum<-summarySE(wide, measurevar="mass.4", 
+                     groupvars=c("temp", "treatment"),na.rm=TRUE)
+mass4.sum
+
+```
+
+
+Mass at 5th instar:
+
+```{r}
+mass5.sum<-summarySE(wide, measurevar="mass.5", 
+                     groupvars=c("temp", "treatment"),na.rm=TRUE)
+mass5.sum
+
+```
+
+
+Mass at wandering:
+
+```{r}
+masswand.sum<-summarySE(wide, measurevar="mass.wander", 
+                                 groupvars=c("temp"),na.rm=TRUE)
+masswand.sum
+
+```
+
+
+Mass at time point before emergence
+
+```{r}
+
+massem.sum<-summarySE(wide, measurevar="mass.befem", 
+                      groupvars=c("temp"),na.rm=TRUE)
+
+massem.sum
+
+```
+
+
+
+Number of wasp larvae emerged:
+
+```{r}
+numem.sum<-summarySE(wide, measurevar="num.em", 
+                     groupvars=c("temp"),na.rm=TRUE)
+
+numem.sum
+
+```
+
+
+
+
+
+
+###Plots of averages
+
+Average age at 4th instar--by temperature and treatment 
+
+```{r,echo=FALSE,warning=FALSE}
+
+theme_set(theme_classic(base_size=14))
+
+age4.plot <- ggplot(age4.sum, aes(x=temp,y=age.4,colour=treatment,group=treatment))
+age4.plot<-age4.plot+geom_point()+geom_errorbar(aes(ymin=age.4-se,ymax=age.4+se),width=.05
+)+geom_line(aes(linetype=treatment,color=treatment),size=1
+)+scale_color_manual(values=c("black","red"), 
+                     name="Treatment",breaks=c("control","para"),
+                     labels=c("Control","Parasitized"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_discrete(name="Treatment",breaks=c("control","para"),
+                          labels=c("Control","Parasitized")
+)+labs(title="Avg hour age at 4th instar",x="temperature [°C]",
+       y="Avg age [hour]"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1))
+
+
+
+age4.plot
+
+```
+
+
+Preliminary linear model of age at 4th instar (temp*treatment)
+
+```{r}
+#lm mods for age at 4th and 5th instar
+
+
+age4.mod<-lm(age.4~temp*treatment,data=wide)
+anova(age4.mod)
+
+```
+
+```{r}
+summary(age4.mod)
+```
+
+
+
+Average age at 5th instar--by temperature and treatment
+
+```{r,echo=FALSE,warning=FALSE}
+
+age5.plot <- ggplot(age5.sum, aes(x=temp,y=age.5,colour=treatment,group=treatment))
+age5.plot<-age5.plot+geom_point()+geom_errorbar(aes(ymin=age.5-se,ymax=age.5+se),width=.05
+)+geom_line(aes(linetype=treatment,color=treatment),size=1
+)+scale_color_manual(values=c("black","red"), 
+                     name="Treatment",breaks=c("control","para"),
+                     labels=c("Control","Parasitized"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_discrete(name="Treatment",breaks=c("control","para"),
+                          labels=c("Control","Parasitized")
+)+labs(title="Avg hour age at 5th instar",x="temperature [°C]",
+       y="Avg age [hour]"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1))
+
+
+
+age5.plot
+
+
+```
+
+
+
+
+Preliminary linear model of age at 5th instar (temp*treatment)
+
+```{r}
+age5.mod<-lm(age.5~temp*treatment,data=wide)
+anova(age5.mod)
+```
+
+```{r}
+summary(age5.mod)
+```
+
+
+Interaction term not significant, removing from model:
+
+```{r}
+age5.mod2<-lm(age.5~temp+treatment,data=wide)
+anova(age5.mod2)
+```
+
+
+Testing the full and reduced model
+
+```{r}
+anova(age5.mod,age5.mod2)
+
+```
+Not significantly differet, so can use the reduced model
+
+
+
+
+
+Average mass at 4th instar--by temperature and treatment 
+
+
+```{r,echo=FALSE,warning=FALSE}
+
+
+mass4.plot <- ggplot(mass4.sum, aes(x=temp,y=mass.4,colour=treatment,group=treatment))
+mass4.plot<-mass4.plot+geom_point()+geom_errorbar(aes(ymin=mass.4-se,ymax=mass.4+se),width=.05
+)+geom_line(aes(linetype=treatment,color=treatment),size=1
+)+scale_color_manual(values=c("black","red"), 
+                     name="Treatment",breaks=c("control","para"),
+                     labels=c("Control","Parasitized"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_discrete(name="Treatment",breaks=c("control","para"),
+                          labels=c("Control","Parasitized")
+)+labs(title="Avg mass at 4th instar",x="temperature [°C]",
+       y="Avg mass [mg]"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1))
+
+
+
+mass4.plot
+
+```
+
+
+Preliminary linear model of mass at 4th instar (tempXtreatmentXage)
+
+```{r}
+
+mass4.mod<-lm(mass.4~treatment*temp*age.4,data=wide)
+anova(mass4.mod)
+
+```
+
+```{r}
+summary(mass4.mod)
+```
+
+
+Removing nonsignificant predictors (-trt:age.4):
+
+```{r}
+mass4.mod2<-lm(mass.4~treatment+temp+age.4+treatment:temp+temp:age.4+treatment:temp:age.4,data=wide)
+anova(mass4.mod2)
+
+```
+
+
+Removing 3 way interaction (temp:trt:age.4)
+
+```{r}
+
+mass4.mod3<-lm(mass.4~treatment+temp+age.4+treatment:temp+temp:age.4,data=wide)
+anova(mass4.mod3)
+
+```
+
+
+Removing age.4
+
+```{r}
+
+mass4.mod4<-lm(mass.4~treatment+temp+treatment:temp+temp:age.4,data=wide)
+anova(mass4.mod4)
+
+```
+
+
+Removing treatment:temp interaction:
+
+```{r}
+mass4.mod5<-lm(mass.4~treatment+temp+temp:age.4,data=wide)
+anova(mass4.mod5)
+
+```
+
+
+Removing treatment:
+
+```{r}
+mass4.mod6<-lm(mass.4~temp+temp:age.4,data=wide)
+anova(mass4.mod6)
+
+```
+
+
+```{r}
+summary(mass4.mod6)
+```
+
+
+Testing models:
+
+```{r}
+
+anova(mass4.mod,mass4.mod6)
+
+
+```
+
+Not significantly different, can use reduced model
+
+
+
+Average mass at 5th instar--by temperature and treatment 
+
+
+```{r,echo=FALSE,warning=FALSE}
+
+
+mass5.plot <- ggplot(mass5.sum, aes(x=temp,y=mass.5,colour=treatment,group=treatment))
+mass5.plot<-mass5.plot+geom_point()+geom_errorbar(aes(ymin=mass.5-se,ymax=mass.5+se),width=.05
+)+geom_line(aes(linetype=treatment,color=treatment),size=1
+)+scale_color_manual(values=c("black","red"), 
+                     name="Treatment",breaks=c("control","para"),
+                     labels=c("Control","Parasitized"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_discrete(name="Treatment",breaks=c("control","para"),
+                          labels=c("Control","Parasitized")
+)+labs(title="Avg mass at 5th instar",x="temperature [°C]",
+       y="Avg mass [mg]"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1))
+
+
+
+mass5.plot
+
+```
+
+
+Preliminary linear model of mass at 5th instar (tempXtreatmentXage.4)
+
+```{r}
+mass5.mod<-lm(mass.5~temp*treatment*age.5,data=wide)
+anova(mass5.mod)
+
+```
+
+
+Removing treatment and age interaction (trt:age.5)
+
+```{r}
+mass5.mod2<-lm(mass.5~temp+treatment+age.5+temp:treatment+temp:age.5+temp:treatment:age.5,data=wide)
+anova(mass5.mod2)
+
+```
+
+
+Removing 3 way interaction (temp:treatment:age.5)
+
+```{r}
+
+mass5.mod3<-lm(mass.5~temp+treatment+age.5+temp:treatment+temp:age.5,data=wide)
+anova(mass5.mod3)
+
+```
+
+
+Removing age.5
+
+```{r}
+mass5.mod4<-lm(mass.5~temp+treatment+temp:treatment+temp:age.5,data=wide)
+anova(mass5.mod4)
+
+```
+
+
+
+Removing temp:treatment
+
+```{r}
+
+mass5.mod5<-lm(mass.5~temp+treatment+temp:age.5,data=wide)
+anova(mass5.mod5)
+
+```
+
+```{r}
+summary(mass5.mod5)
+```
+
+
+
+Testing models:
+
+```{r}
+anova(mass5.mod,mass5.mod5)
+```
+
+Models not significantly different, can use reduced model
+
+
+
+
+Plotting avg mass at wandering for control caterpillars by temperature
+
+```{r}
+
+masswand.plot <- ggplot(masswand.sum, aes(x=temp,y=mass.wander))
+masswand.plot<-masswand.plot+geom_point()+geom_errorbar(aes(ymin=mass.wander-se,ymax=mass.wander+se),width=.05)+geom_line()+labs(title="Avg mass at wandering",x="temperature [°C]",
+                   y="Avg mass [mg]"
+               )+theme(axis.title.y=element_text(vjust=1.5),
+                       axis.title.x=element_text(vjust=-.35),
+                       plot.title=element_text(face="bold",vjust=1))
+
+
+
+masswand.plot
+
+```
+
+
+
+Preliminary linear model of mass at wander by temperature and age at wander
+
+```{r}
+
+masswand.mod<-lm(mass.wander~temp*age.wander,data=wide)
+anova(masswand.mod)
+
+```
+
+Removing the interaction term (temp:age.wander)
+
+```{r}
+
+masswand.mod2<-lm(mass.wander~temp+age.wander,data=wide)
+anova(masswand.mod2)
+
+```
+
+
+```{r}
+summary(masswand.mod2)
+```
+
+
+Testing models:
+
+
+```{r}
+anova(masswand.mod,masswand.mod2)
+```
+
+Models not significantly different, can use reduced model
+
+
+
+Plotting average mass at wasp emergence for parasitized caterpillars by temperature
+
+
+```{r}
+massem.plot <- ggplot(massem.sum, aes(x=temp,y=mass.befem))
+massem.plot<-massem.plot+geom_point()+geom_errorbar(aes(ymin=mass.befem-se,ymax=mass.befem+se),width=.05)+geom_line()+labs(title="Avg mass at wasp emergence",x="temperature [°C]",
+                   y="Avg mass [mg]"
+               )+theme(axis.title.y=element_text(vjust=1.5),
+                       axis.title.x=element_text(vjust=-.35),
+                       plot.title=element_text(face="bold",vjust=1))
+
+
+
+massem.plot
+
+
+```
+
+
+
+Preliminary linear model of mass at emergence by temperature and age.em--should add load once we have it
+
+```{r}
+
+massem.mod<-lm(mass.befem~temp*age.em,data=wide)
+anova(massem.mod)
+
+```
+
+
+Removing temp from the model
+
+```{r}
+massem.mod2<-lm(mass.befem~age.em+temp:age.em,data=wide)
+anova(massem.mod2)
+
+```
+
+This radically changed the significance of age.em
+
+Testing the model
+
+```{r}
+anova(massem.mod,massem.mod2)
+
+```
+
+Model is significantly different, need to keep the full model
+
+```{r}
+summary(massem.mod)
+
+```
+
+
+
+###Preliminary mixed effect models looking at mass, consumption, age, temperature and treatment
+
+ID as a random intercept
+
+```{r}
+
+massmm.mod<-lme(log(mass)~temp*treatment*age,random=~1|bug.id,data=cpt,method="ML",na.action = na.omit)
+
+anova(massmm.mod)
+
+```
+
+
+```{r}
+summary(massmm.mod)
+```
+
+
+
+Mixed effect model of mass with age as a polynomial:
+
+
+
+
+
+
+
+
+
+Mixed effect model of mass gain~temp X treat X poly(age), with ID and mass at 3rd as random intercepts
+
+Not sure if I've used the correct syntax here...
+
+```{r}
+
+
+mg.mod<-lme(log.mg~temp*treatment*poly(age,2),random=~log.mT0-1 | bug.id,data=cpt,method='ML',na.action = na.omit)
+anova(mg.mod)
+```
+
+```{r}
+summary(mg.mod)
+```
+
+
+```{r}
+mg.mod2<-lme(log.mg~temp*treatment*poly(age,2),random=~1|bug.id,data=cpt,method='ML',na.action=na.omit)
+anova(mg.mod2)
+
+```
+
+```{r}
+summary(mg.mod2)
+```
+
+
+
+
+
+```{r}
+mg.mod3.5<-lme(log.mg~temp*treatment,random=~1|log.mT0,data=cpt,method='ML',na.action=na.omit)
+anova(mg.mod3.5)
+```
+
+
+```{r}
+summary(mg.mod3.5)
+```
+
+
+
+
+
+```{r}
+mg.mod4<-lme(log.mg~temp*treatment*poly(age,2),random=~1+log.mT0|bug.id,data=cpt,method='ML',na.action=na.omit)
+anova(mg.mod4)
+
+```
+
+
+```{r}
+summary(mg.mod4)
+```
+
+
+
+Kate's idea: add mass at 3rd as a fixed effect--if other fixed effects are still significant, then they should be independent of mass at 3rd
+
+```{r}
+mg.mod5<-lme(log.mg~temp*treatment*poly(age,2)+log.mT0,random=~1|bug.id,data=cpt,method='ML',na.action=na.omit)
+anova(mg.mod5)
+
+```
+
+```{r}
+summary(mg.mod5)
+```
+
+
+
+
+```{r}
+mg.mod6<-lme(log.mg~temp*treatment*poly(age,2),random=~1|bug.id,data=cpt,method='ML',na.action=na.omit)
+anova(mg.mod6,mg.mod5)
+```
+
+
+```{r}
+massT0.sum<-summarySE(wide,measurevar="mass.T0", groupvars=c("temp","treatment"), na.rm=T)
+massT0.sum
+```
+
+
+
+```{r,echo=FALSE}
+theme_set(theme_classic(base_size=14))
+
+massT0.plot<-ggplot(wide,aes(x=mass.T0,y=mass.gain.4,color=temp,group=temp))
+massT0.plot+geom_point()+geom_smooth(method=lm,se=FALSE)+facet_wrap(~treatment)
+```
+
+Mass at the 3rd instar seems to have some correlation with mass gained at the 4th instar (which makes sense). The steepest slope is in the parasitized treatment at 20C, where there is a strongly positive correlation between mass at the 3rd instar and mass gained by the 4th instar.There seem to be some "outliers" at 30, maybe should exclude anything above 100.
+
+
+```{r,echo=FALSE}
+massT0.plot5<-ggplot(wide,aes(x=mass.T0,y=mass.gain.5,color=temp,group=temp))
+massT0.plot5+geom_point()+geom_smooth(method=lm,se=FALSE)+facet_wrap(~treatment)
+```
+
+There is mostly no strong correlation between mass at 3rd and mass gained by the 5th instar. The parasitized treatment retains some positive slope, but it is much less steep than for mass gained at 4th. 
+
+
+```{r,echo=FALSE}
+massT0.plotwan<-ggplot(subset(wide,treatment=="control"),aes(x=mass.T0,y=mass.gain.wan,color=temp,group=temp))
+massT0.plotwan+geom_point()+geom_smooth(method=lm,se=FALSE)
+```
+
+Doesn't seem to be any strong correlation between mass at the 3rd and mass gained by wandering (control treatment only)
+
+```{r,echo=FALSE}
+massT0.plotem<-ggplot(subset(wide,treatment=="para"),aes(x=mass.T0,y=mass.gain.em,color=temp,group=temp))
+massT0.plotem+geom_point()+geom_smooth(method=lm,se=FALSE)
+```
+
+Interestingly, the correlation between mass at 3rd and mass gained by wasp emergence has switched directions for the 20C group--at 4th and 5th, it was positive, and at emergence, it is negative. 30 has also switched, from being weakly negative to being weakly positive (even including possible "outliers" of too large 3rds >100 mg). 
+
+
+
+
+Preliminary mixed effect model of consumption by temp, treatment and age (and mass at 3rd), with ID as a random factor
+
+
+```{r}
+
+cnsmp.mod<-lme(log.cnsmp~treatment*temp*poly(age,2)+log.mT0,random=~1|bug.id,data=cpt,method="ML",na.action = na.omit)
+anova(cnsmp.mod)
+
+```
+
+
+```{r}
+summary(cnsmp.mod)
+```
+
+```{r}
+cnsmp.mod2<-lme(log.cnsmp~treatment*temp*poly(age,2),random=~1|bug.id,data=cpt,method="ML",na.action = na.omit)
+anova(cnsmp.mod2)
+```
+
+```{r}
+summary(cnsmp.mod2)
+```
+
+
+```{r}
+anova(cnsmp.mod,cnsmp.mod2)
+```
+
+
+```{r,echo=FALSE}
+
+massT0.plot<-ggplot(wide,aes(x=mass.T0,y=cnsmp.4,color=temp,group=temp))
+massT0.plot+geom_point()+geom_smooth(method=lm,se=FALSE)+facet_wrap(~treatment)
+```
+
+
+
+
+```{r,echo=FALSE}
+massT0.plot5<-ggplot(wide,aes(x=mass.T0,y=cnsmp.5,color=temp,group=temp))
+massT0.plot5+geom_point()+geom_smooth(method=lm,se=FALSE)+facet_wrap(~treatment)
+```
+
+```{r,echo=FALSE}
+massT0.plotwan<-ggplot(subset(wide,treatment=="control"),aes(x=mass.T0,y=cnsmp.wan,color=temp,group=temp))
+massT0.plotwan+geom_point()+geom_smooth(method=lm,se=FALSE)
+```
+
+
+
+```{r,echo=FALSE}
+massT0.plotem<-ggplot(subset(wide,treatment=="para"),aes(x=mass.T0,y=cnsmp.em,color=temp,group=temp))
+massT0.plotem+geom_point()+geom_smooth(method=lm,se=FALSE)
+```
+
+
+```{r}
+
+numem.mod<-lm(num.em~temp*mass.T0,data=wide,na.action = na.omit)
+anova(numem.mod)
+
+```
+
+```{r}
+summary(numem.mod)
+```
+
+```{r,echo=FALSE}
+massT0.plotnumem<-ggplot(subset(wide,treatment=="para"),aes(x=mass.T0,y=num.em,color=temp,group=temp))
+massT0.plotnumem+geom_point()+geom_smooth(method=lm,se=FALSE)
+```
+
+
+```{r}
+massem.mod<-lm(mass.befem~temp*num.em,data=wide,na.action = na.omit)
+anova(massem.mod)
+
+```
+
+```{r}
+summary(massem.mod)
+```
+
+
+```{r}
+massem.mod2<-lm(num.em~temp*mass.befem,data=wide,na.action = na.omit)
+anova(massem.mod2)
+
+```
+```{r}
+summary(massem.mod2)
+```
+
+
+
+```{r,echo=FALSE}
+massem.plot<-ggplot(wide,aes(x=mass.befem,y=num.em,group=temp,color=temp))
+massem.plot+geom_point()+geom_smooth(se=FALSE)
+
+```
+
+
+```{r,echo=FALSE}
+massem.plot<-ggplot(wide,aes(x=num.em,y=mass.befem,group=temp,color=temp))
+massem.plot+geom_point()+geom_smooth(se=FALSE)
+```
+
+
+
+
+
+```{r}
+para<-subset(wide,treatment=="para")
+para.1<-subset(para,num.ovp=="1")
+
+theme_set(theme_classic())
+
+load.plot<-ggplot(para.1,aes(y=num.em,x=load,group=temp,color=temp))
+load.plot+geom_point()+geom_smooth(se=FALSE)
+```
+
+
+
+```{r}
+load.plot2<-ggplot(para.1,aes(x=temp,y=load))
+load.plot2+geom_point()+geom_jitter()
+```
+
+
+```{r}
+para<-subset(wide,treatment=="para")
+para<-subset(para,died=="0")
+para<-subset(para,suc.ovp=="1")
+para<-para[!is.na(para$instar.em),]
+
+
+loaddev.plot<-ggplot(para,aes(x=load,y=int.wasp.dev,group=temp,color=temp))
+loaddev.plot+geom_point()+geom_smooth(se=FALSE,method="lm")
+
+```
+
+
+```{r}
+
+wide$totmort.num<-wide$num.unem+wide$num.fail.spin
+
+surv.plot<-ggplot(para,aes(x=load,y=num.coc,group=temp,color=temp))
+surv.plot+geom_point()+geom_smooth(method="lm",se=FALSE)
+
+```
+
+
+
+
+
+```{r}
+
+em.plot<-ggplot(para,aes(x=as.factor(instar.em),y=load))
+em.plot+geom_boxplot()+facet_wrap(~temp)
+```
+
+
+```{r}
+em.mod<-lm(instar.em~load*temp,data=para)
+anova(em.mod)
+
+```

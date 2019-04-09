@@ -1,0 +1,16 @@
+log.cnsmp,day.age,temp,treatment,name
+0,1,20,control,3
+4,6,20,control,4
+5,16,20,control,5
+9.5,23,20,control,W
+6,22,20,control,E
+0,1,25,control,3
+4.5,5,25,control,4
+6,10,25,control,5
+9.5,12.5,25,control,W
+6.5,14,25,control,E
+0,1,30,control,3
+4.3,3,30,control,4
+5.5,7,30,control,5
+9.5,9,30,control,W
+6,11,30,control,E

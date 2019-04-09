@@ -1,0 +1,131 @@
+---
+title: "Model testing"
+author: "Liz"
+date: "November 20, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,include=FALSE}
+library(readr)
+library(nlme)
+library(lme4)
+library(tidyr)
+library(ggplot2)
+
+long <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt.gr.long.load.csv", 
+                 col_types = cols(temp = col_factor(levels = c("20","25","30")),
+                                  treatment=col_factor(levels=c("para","control"))))
+
+long$log.mT0<-log(long$mass.T0)
+long$log.mass<-log(long$mass)
+long$log.cnsmp<-log(long$tot.cnsmp)
+```
+
+
+##James' model:
+
+```{r}
+lm.mod1<-lme(log.mass~age:temp+age:treatment+age:temp:treatment+temp,random=~age|bug.id,data=long,na.action=na.omit,method="ML")
+anova(lm.mod1)
+```
+
+```{r}
+summary(lm.mod1)
+```
+
+<br>
+<br>
+
+
+###Plot of values predicted from the model:
+
+```{r,echo=FALSE}
+long.cut<-drop_na(long,log.mass,age)
+
+long.cut$fit<-predict(lm.mod1)
+
+theme_set(theme_classic())
+mod.plot<-ggplot(long.cut,aes(x=age,y=log.mass,group=interaction(bug.id,temp),color=temp))
+mod.plot+geom_line(aes(y=fit, lty=treatment), size=0.8
+       )+scale_color_manual(values=c("#56B4E9","#009E73","#E69F00"),
+                     name="Temperature[C]",
+                     breaks=c("20","25","30"),
+                     labels=c("20","25","30"),guide=guide_legend(keywidth=1.8)
+       )+scale_linetype_manual(values=c("dashed","solid"),
+                        breaks=c("control","para"),
+                        labels=c("Control","Parasitized"),
+                        name="Treatment")  
+```
+
+<br>
+<br>
+
+Has random slope and intercept that incorporates individual ID and age. Has all predictors interacting with age, as well as a stand alone predictor of temperature to account for the confounding effects of rearing temperature on starting mass (mass at the 3rd instar). Potentially doesn't account for the non linear effects of age.
+
+
+<br>
+<br>
+
+
+##Joel's model:
+
+```{r}
+lm.mod1b<-lme(log.mass~poly(age,2)*temp*treatment,random=~age|bug.id,data=long,na.action=na.omit,method="ML")
+anova(lm.mod1b)
+```
+
+```{r,include=FALSE}
+summary(lm.mod1b)
+```
+
+<br>
+<br>
+
+###Plot of values predicted by the model
+
+```{r,echo=FALSE}
+
+long.cut$fit2<-predict(lm.mod1b)
+
+mod.plot<-ggplot(long.cut,aes(x=age,y=log.mass,group=interaction(bug.id,temp),color=temp))
+mod.plot+geom_line(aes(y=fit2, lty=treatment), size=0.8
+       )+scale_color_manual(values=c("#56B4E9","#009E73","#E69F00"),
+                            name="Temperature[C]",
+                            breaks=c("20","25","30"),
+                            labels=c("20","25","30"),guide=guide_legend(keywidth=1.8)
+       )+scale_linetype_manual(values=c("dashed","solid"),
+                               breaks=c("control","para"),
+                               labels=c("Control","Parasitized"),
+                               name="Treatment")
+
+```
+
+<br>
+<br>
+
+Also has a random slope and intercept that incorporates age and individual ID. Allows all predictors to interact, and includes age as a 1st and 2nd order polynomial, potentially accounting for non linear affects of age. 
+
+
+
+
+##Consult with both
+
+```{r}
+lm.mod2<-lme(log.mass~(age+I(age^2)):(temp*treatment)+temp,random=~age|bug.id,data=long,na.action=na.omit,method="ML")
+anova(lm.mod2)
+lm.mod3<-lme(log.mass~(age+I(age^2)):(temp*treatment)+temp,random=~age+I(age^2)|bug.id,data=long,na.action=na.omit,method="ML")
+AIC(lm.mod1,lm.mod2,lm.mod3)
+VarCorr(lm.mod2)
+VarCorr(lm.mod3)
+```
+
+```{r}
+summary(lm.mod2)
+```
+
+
+

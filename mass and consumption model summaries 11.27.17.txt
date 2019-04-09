@@ -1,0 +1,60 @@
+ anova(lm.mod2)
+                        numDF denDF  F-value p-value
+(Intercept)                 1  5826 39580.71  <.0001
+temp                        2   282    10.68  <.0001
+age:temp                    3  5826  3672.52  <.0001
+age:treatment               1  5826   140.71  <.0001
+I(age^2):temp               3  5826   427.71  <.0001
+I(age^2):treatment          1  5826     0.64  0.4220
+age:temp:treatment          2  5826    14.77  <.0001
+I(age^2):temp:treatment     2  5826     3.18  0.0418
+
+
+
+> anova(lc.mod2)
+                        numDF denDF   F-value p-value
+(Intercept)                 1  5289 194776.33  <.0001
+temp                        2   282    873.51  <.0001
+age:temp                    3  5289   6278.37  <.0001
+age:treatment               1  5289    388.19  <.0001
+I(age^2):temp               3  5289   1000.98  <.0001
+I(age^2):treatment          1  5289      5.41  0.0201
+age:temp:treatment          2  5289     20.11  <.0001
+I(age^2):temp:treatment     2  5289     14.04  <.0001
+
+
+
+MODELS WITHOUT MONGOS
+
+> lm.mod2<-lme(log.mass~(age+I(age^2)):(temp*treatment)+temp,random=~age|bug.id,
++              data=cpt.cl,na.action=na.omit,method="ML")
+> anova(lm.mod2)
+                        numDF denDF  F-value p-value
+(Intercept)                 1  5470 52841.81  <.0001
+temp                        2   261    66.41  <.0001
+age:temp                    3  5470  5336.59  <.0001
+age:treatment               1  5470   231.29  <.0001
+I(age^2):temp               3  5470   267.39  <.0001
+I(age^2):treatment          1  5470     8.41  0.0037
+age:temp:treatment          2  5470    15.43  <.0001
+I(age^2):temp:treatment     2  5470    13.88  <.0001
+
+
+
+> lc.mod2<-lme(log.cnsmp~(age+I(age^2)):(temp*treatment)+temp,random=~age|bug.id,
++              data=cpt.cl.cnsmp,
++              na.action=na.omit,method="ML")
+> anova(lc.mod2)
+                        numDF denDF   F-value p-value
+(Intercept)                 1  4960 217706.99  <.0001
+temp                        2   261   1103.86  <.0001
+age:temp                    3  4960   8308.81  <.0001
+age:treatment               1  4960    464.08  <.0001
+I(age^2):temp               3  4960   1043.51  <.0001
+I(age^2):treatment          1  4960      0.39  0.5334
+age:temp:treatment          2  4960     25.11  <.0001
+I(age^2):temp:treatment     2  4960      0.71  0.4934
+
+Diffs: age^2:treatment is sig for mass gain
+age^2:treatment is not sig for cnsmp
+age^2:temp:treat is not sig for cnsmp

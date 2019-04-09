@@ -1,0 +1,320 @@
+---
+title: "Joel update 6/2/17"
+author: "Liz"
+date: "June 2, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load necessary libraries:
+
+```{r,include=FALSE,warning=FALSE,message=FALSE}
+library(dplyr)
+library(tidyr)
+library(reshape2)
+library(ggplot2)
+library(gridExtra)
+library(Rmisc)
+library(readr)
+library(nlme)
+library(lme4)
+```
+
+
+Import data:
+
+```{r,include=FALSE}
+cpt <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt.gr.long.csv", 
+    col_types = cols(temp = col_factor(levels = c("20", 
+        "25", "30"))))
+cpt$log.mT0<-log(cpt$mass.T0)
+cpt$log.mass<-log(cpt$mass)
+cpt$log.cnsmp<-log(cpt$tot.cnsmp)
+View(cpt)
+
+wide <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt gr wide.csv", 
+    col_types = cols(temp = col_factor(levels = c("20", 
+        "25", "30")), treatment = col_factor(levels = c("control", 
+        "para"))))
+View(wide)
+
+
+avg <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt avg data.csv")
+View(avg)
+avg$temp<-as.factor(avg$temp)
+avg$treat<-as.factor(avg$treat)
+
+
+avg.long <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt avg long.csv")
+View(avg.long)
+avg.long$temp<-as.factor(avg.long$temp)
+avg.long$treat<-as.factor(avg.long$treat)
+
+
+```
+
+
+Subsetting by temperature
+
+```{r,include=FALSE}
+#Dividing by temperature
+
+cpt.30<-subset(cpt,temp=="30")
+
+cpt.25<-subset(cpt,temp=="25")
+
+cpt.20<-subset(cpt,temp=="20")
+
+```
+
+
+
+```{r,echo=FALSE,warning=FALSE}
+
+theme_set(theme_classic())
+
+k<- ggplot(cpt, aes(age, log(mass.gain), group=interaction(bug.id, temp), color=factor(temp)))
+k+geom_line(aes(linetype=treatment)
+)+theme_bw(
+)+theme(plot.background = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), panel.border= element_blank(), 
+        axis.line.x = element_line(color="black", size = 1.5),
+        axis.line.y = element_line(color="black", size = 1.5),text = element_text(size = 15)
+)+scale_color_manual(values=c( "lightblue","darkblue", "magenta"),
+                     guide=guide_legend(title="temperature"))
+
+```
+
+
+
+```{r,echo=FALSE,warning=FALSE}
+#Plotting average log mass gain (since 3rd instar) by average age (since 3rd instar)
+
+#Facet by treatment
+avg.plot <- ggplot(avg.long, aes(x=age,y=log.mg,colour=temp,group=temp))
+avg.plot<-avg.plot+geom_point()+geom_errorbar(aes(ymin=log.mg-log.mg.se,ymax=log.mg+log.mg.se),width=.2
+)+geom_errorbarh(aes(xmin=age-age.se,xmax=age+age.se)
+)+geom_line(aes(linetype=temp,color=temp),size=1
+)+scale_color_manual(values=c("#56B4E9","#000000","#E69F00"), 
+                     name="Temperature [C]",breaks=c("20","25","30"),
+                     labels=c("20","25","30"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_discrete(name="Temperature [C]",breaks=c("20","25","30"),
+                          labels=c("20","25","30")
+)+labs(title="Avg mass gain by avg age (since 3rd instar)",x="avg age [hour]",
+       y="Avg log(mass gain)"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1)
+)+facet_wrap(~treat)
+
+avg.plot
+```
+
+```{r,echo=FALSE,warning=FALSE}
+#Facet by temp
+
+avg.plot <- ggplot(avg.long, aes(x=age,y=log.mg,colour=treat,group=treat))
+avg.plot<-avg.plot+geom_point()+geom_errorbar(aes(ymin=log.mg-log.mg.se,ymax=log.mg+log.mg.se),size=.5
+)+geom_errorbarh(aes(xmin=age-age.se,xmax=age+age.se),size=.5
+)+geom_line(aes(linetype=treat,color=treat),size=1
+)+scale_color_manual(values=c("black","red"), 
+                     name="Treatment",breaks=c("control","para"),
+                     labels=c("Control","Parasitized"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_discrete(name="Treatment",breaks=c("control","para"),
+                          labels=c("Control","Parasitized")
+)+labs(title="Avg mass gain by avg age since 3rd instar",x="avg age [hour]",
+       y="Avg log(mass gain)"
+)+scale_y_continuous(limits=c(0,11),breaks = c(0,2,4,6,8,10)
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1)
+)+facet_wrap(~temp)
+
+
+
+avg.plot
+
+```
+
+
+```{r,echo=FALSE,warning=FALSE}
+#Mass gain by consumption
+
+#Facet by treatment
+avg.plot <- ggplot(avg.long, aes(x=log.cnsmp,y=log.mg,colour=temp,group=temp))
+avg.plot<-avg.plot+geom_point(size=2)+geom_errorbar(aes(ymin=log.mg-log.mg.se,ymax=log.mg+log.mg.se),width=.5
+)+geom_errorbarh(aes(xmin=log.cnsmp-log.cnsmp.se,xmax=log.cnsmp+log.cnsmp.se)
+)+geom_line(aes(linetype=temp,color=temp),size=1.5
+)+scale_color_manual(values=c("#56B4E9","#000000","#E69F00"), 
+                     name="Temperature [C]",breaks=c("20","25","30"),
+                     labels=c("20","25","30"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_discrete(name="Temperature [C]",breaks=c("20","25","30"),
+                          labels=c("20","25","30")
+                          #)+coord_cartesian(ylim=c(3, 9)
+)+labs(title="Avg mass gain X avg consumption",x="avg log(cnsmp)",
+       y="Avg log(mass gain)"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1)
+)+facet_wrap(~treat)
+
+avg.plot
+```
+
+
+```{r,echo=FALSE,warning=FALSE}
+#Facet by temp
+avg.plot <- ggplot(avg.long, aes(x=log.cnsmp,y=log.mg,colour=treat,group=treat))
+avg.plot<-avg.plot+geom_point(size=2)+geom_errorbar(aes(ymin=log.mg-log.mg.se,ymax=log.mg+log.mg.se),width=.5
+)+geom_errorbarh(aes(xmin=log.cnsmp-log.cnsmp.se,xmax=log.cnsmp+log.cnsmp.se)
+)+geom_line(aes(linetype=treat,color=treat),size=1.5
+)+scale_color_manual(values=c("black","red"), 
+                     name="Treatment",breaks=c("control","para"),
+                     labels=c("Control","Parasizited"),guide=guide_legend(keywidth=1.8)
+)+scale_linetype_discrete(name="Treatment",breaks=c("control","para"),
+                          labels=c("Control","Parasitized")
+                          #)+coord_cartesian(ylim=c(3, 9)
+)+labs(title="Avg mass gain X avg consumption",x="avg log(cnsmp)",
+       y="Avg log(mass gain)"
+)+theme(axis.title.y=element_text(vjust=1.5),
+        axis.title.x=element_text(vjust=-.35),
+        plot.title=element_text(face="bold",vjust=1)
+)+facet_wrap(~temp)
+
+avg.plot
+
+
+```
+
+
+
+
+
+
+
+Kate's idea: add mass at 3rd as a fixed effect--if other fixed effects are still significant, then they should be independent of mass at 3rd
+
+```{r}
+mg.mod5<-lme(log.mg~temp*treatment*poly(age,2)+log.mT0,random=~1|bug.id,data=cpt,method='ML',na.action=na.omit)
+anova(mg.mod5)
+
+```
+
+```{r}
+summary(mg.mod5)
+```
+
+
+
+```{r}
+mg.mod6<-lme(log.mg~temp*treatment*poly(age,2),random=~1|bug.id,data=cpt,method='ML',na.action=na.omit)
+anova(mg.mod6,mg.mod5)
+```
+
+
+```{r,echo=FALSE,warning=FALSE}
+theme_set(theme_classic(base_size=14))
+
+massT0.plot<-ggplot(wide,aes(x=mass.T0,y=mass.gain.4,color=temp,group=temp))
+massT0.plot+geom_point()+geom_smooth(method=lm,se=FALSE)+facet_wrap(~treatment)
+```
+
+
+Mass at the 3rd instar seems to have some correlation with mass gained at the 4th instar (which makes sense). The steepest slope is in the parasitized treatment at 20C, where there is a strongly positive correlation between mass at the 3rd instar and mass gained by the 4th instar.There seem to be some "outliers" at 30, maybe should exclude anything above 100.
+
+
+```{r,echo=FALSE,warning=FALSE}
+massT0.plot5<-ggplot(wide,aes(x=mass.T0,y=mass.gain.5,color=temp,group=temp))
+massT0.plot5+geom_point()+geom_smooth(method=lm,se=FALSE)+facet_wrap(~treatment)
+```
+
+There is mostly no strong correlation between mass at 3rd and mass gained by the 5th instar. The parasitized treatment retains some positive slope, but it is much less steep than for mass gained at 4th. 
+
+
+```{r,echo=FALSE,warning=FALSE}
+massT0.plotwan<-ggplot(subset(wide,treatment=="control"),aes(x=mass.T0,y=mass.gain.wan,color=temp,group=temp))
+massT0.plotwan+geom_point()+geom_smooth(method=lm,se=FALSE)
+```
+
+Doesn't seem to be any strong correlation between mass at the 3rd and mass gained by wandering (control treatment only)
+
+```{r,echo=FALSE,warning=FALSE}
+massT0.plotem<-ggplot(subset(wide,treatment=="para"),aes(x=mass.T0,y=mass.gain.em,color=temp,group=temp))
+massT0.plotem+geom_point()+geom_smooth(method=lm,se=FALSE)
+```
+
+Interestingly, the correlation between mass at 3rd and mass gained by wasp emergence has switched directions for the 20C group--at 4th and 5th, it was positive, and at emergence, it is negative. 30 has also switched, from being weakly negative to being weakly positive (even including possible "outliers" of too large 3rds >100 mg). 
+
+
+
+Preliminary mixed effect model of consumption by temp, treatment and age (and mass at 3rd), with ID as a random factor
+
+
+```{r}
+
+cnsmp.mod<-lme(log.cnsmp~treatment*temp*poly(age,2)+log.mT0,random=~1|bug.id,data=cpt,method="ML",na.action = na.omit)
+anova(cnsmp.mod)
+
+```
+
+
+```{r}
+summary(cnsmp.mod)
+```
+
+
+
+
+```{r}
+cnsmp.mod2<-lme(log.cnsmp~treatment*temp*poly(age,2),random=~1|bug.id,data=cpt,method="ML",na.action = na.omit)
+anova(cnsmp.mod2)
+```
+
+```{r}
+summary(cnsmp.mod2)
+```
+
+
+```{r}
+anova(cnsmp.mod,cnsmp.mod2)
+```
+
+
+```{r,echo=FALSE,warning=FALSE}
+
+massT0.plot<-ggplot(wide,aes(x=mass.T0,y=cnsmp.4,color=temp,group=temp))
+massT0.plot+geom_point()+geom_smooth(method=lm,se=FALSE)+facet_wrap(~treatment)
+```
+
+
+
+
+```{r,echo=FALSE,warning=FALSE}
+massT0.plot5<-ggplot(wide,aes(x=mass.T0,y=cnsmp.5,color=temp,group=temp))
+massT0.plot5+geom_point()+geom_smooth(method=lm,se=FALSE)+facet_wrap(~treatment)
+```
+
+```{r,echo=FALSE,warning=FALSE}
+massT0.plotwan<-ggplot(subset(wide,treatment=="control"),aes(x=mass.T0,y=cnsmp.wan,color=temp,group=temp))
+massT0.plotwan+geom_point()+geom_smooth(method=lm,se=FALSE)
+```
+
+
+
+```{r,echo=FALSE,warning=FALSE}
+massT0.plotem<-ggplot(subset(wide,treatment=="para"),aes(x=mass.T0,y=cnsmp.em,color=temp,group=temp))
+massT0.plotem+geom_point()+geom_smooth(method=lm,se=FALSE)
+```
+
+
+
+
+
+
+
+
+
+

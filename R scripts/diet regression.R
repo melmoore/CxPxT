@@ -1,0 +1,338 @@
+#CPT control diet block regressions (dried after being in treatments)
+
+
+library(readr)
+library(ggplot2)
+library(car)
+library(dplyr)
+library(tidyr)
+library(reshape2)
+library(Rmisc)
+
+diet.f <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cf diet blocks.csv")
+View(diet.f)
+
+diet.i <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/ci diet blocks.csv")
+View(diet.i)
+
+para <- read_csv("~/Manduca expts/Summer+Fall 2016/CxPxT/data files/cpt gr wide.csv")
+View(para)
+para$temp<-as.factor(para$temp)
+
+
+
+
+#Final masses
+
+diet.f$temp<-as.factor(diet.f$temp)
+diet.f$tp<-as.factor(diet.f$tp)
+
+diet.f.plot<-ggplot(diet.f,aes(x=wet.mass,y=dry.mass))
+diet.f.plot+geom_point(aes(shape=tp))+geom_smooth(method=lm,se=FALSE,fullrange=TRUE)
+
+
+
+mod1<-lm(dry.mass~-1+wet.mass,data=diet.f)
+anova(mod1)
+summary(mod1)
+
+mod.int<-lm(dry.mass~wet.mass,data=diet.f)
+anova(mod.int)
+summary(mod.int)
+
+
+log.mod<-lm(log(dry.mass)~wet.mass,data=diet.f)
+anova(log.mod)
+summary(log.mod)
+
+mod2<-lm(dry.mass~wet.mass*temp*tp,data=diet.f)
+anova(mod2)
+
+
+mod3<-lm(dry.mass~wet.mass+tp+wet.mass:temp+wet.mass:tp+wet.mass:temp:tp+temp:tp,data=diet.f)
+anova(mod3)
+
+
+mod4<-lm(dry.mass~wet.mass+wet.mass:temp+wet.mass:tp+wet.mass:temp:tp+temp:tp,data=diet.f)
+anova(mod4)
+
+
+mod5<-lm(dry.mass~wet.mass+wet.mass:temp+wet.mass:tp+temp:tp,data=diet.f)
+anova(mod5)
+
+
+mod6<-lm(dry.mass~wet.mass+wet.mass:tp+temp:tp,data=diet.f) #Once you remove wet.mass:temp, tp:temp is no
+#longer sig--is this ok to then remove it? 
+anova(mod6)
+
+
+mod7<-lm(dry.mass~wet.mass+temp:tp,data=diet.f)
+anova(mod7)
+
+
+mod8<-lm(dry.mass~wet.mass,data=diet.f)
+anova(mod8)
+
+anova(mod, mod7)  #Diff not sig, so it's fine to have reduced model (?)
+anova(mod,mod2)
+anova(mod2,mod8)
+anova(mod1,mod8)
+anova(mod1,mod.int)
+AIC(mod1)
+AIC(mod.int) #model without intercept (mod1) has slightly better AIC
+
+
+dietf.stdrd = rstandard(mod)
+qqnorm(dietf.stdrd, 
+         ylab="Standardized Residuals", 
+         xlab="Normal Scores", 
+         main="Final diet residuals") 
+qqline(dietf.stdrd) 
+
+df.res<-resid(mod) 
+hist(df.res,breaks=100)
+
+logdf.res<-resid(log.mod)
+
+qqPlot(df.res)
+qqPlot(logdf.res)
+
+#Initial masses
+
+diet.i.plot<-ggplot(diet.i,aes(x=wet.mass,y=dry.mass))
+diet.i.plot+geom_point()+geom_smooth(method=lm,se=FALSE,fullrange=TRUE)
+
+mod.i<-lm(dry.mass~-1+wet.mass,data=diet.i)
+anova(mod.i)
+summary(mod.i)
+
+modi.int<-lm(dry.mass~wet.mass,data=diet.i)
+anova(modi.int)
+summary(modi.int)
+
+
+anova(modi.int,mod.i)
+AIC(modi.int)
+AIC(mod.i)  #sig diff between, mod with intercept has lower AIC
+
+logmod.i<-lm(log(dry.mass)~wet.mass,data=diet.i)
+
+
+dieti.stdrd = rstandard(mod.i)
+qqnorm(dieti.stdrd, 
+       ylab="Standardized Residuals", 
+       xlab="Normal Scores", 
+       main="Final diet residuals") 
+qqline(dieti.stdrd) 
+
+di.res<-resid(mod.i) 
+hist(di.res,breaks=100)
+qqPlot(di.res)
+logdi.res<-resid(logmod.i)
+qqPlot(logdi.res)
+
+
+#PLotting initial and final regressions on same graph
+
+diet.bth<-ggplot(diet.f,aes(y=dry.mass,x=wet.mass))
+diet.bth<-diet.bth+geom_point()+geom_smooth(method=lm,se=FALSE
+                  )+geom_point(data=diet.i,aes(y=dry.mass,x=wet.mass,color="red")
+                  )+geom_smooth(data=diet.i,method=lm,se=FALSE,color="red")
+diet.bth
+
+
+
+#Combining initial and final diets to see if one equation can be used
+
+diet.f$type<-"f"
+diet.i$type<-"i"
+
+
+diet.f2<-subset(diet.f,select=c("id","wet.mass","dry.mass","type"))
+diet.i2<-subset(diet.i,select=c("id","wet.mass","dry.mass","type"))
+
+diet.bth<-rbind(diet.f2,diet.i2)
+diet.bth$type<-as.factor(diet.bth$type)
+
+#Analyzing final vs initial effect on dry mass
+
+bth.mod<-lm(dry.mass~wet.mass*type,data=diet.bth)
+anova(bth.mod)
+summary(bth.mod)
+#Type is significant, should use separate regression lines for initial and final wet.mass
+
+
+
+
+
+#WET MASS STUFF
+
+
+
+#Looking at regression of diet.out by diet.in for one 24 tp--wet mass
+
+
+pplot<-ggplot(para,aes(x=diet.cont.in.T13,y=diet.cont.out.T13,group=temp,color=temp))
+pplot<-pplot+geom_point(aes(shape=temp))
+pplot
+
+para.mod<-lm(diet.cont.out.T13~diet.cont.in.T13*temp,data=para)
+summary(para.mod)
+
+
+#Trying to look at regression of wet mass with all temps and tps
+
+#Making long dataset
+
+para_contin<-melt(para,id.vars=c("bug.id","treatment","temp"),measure.vars=c("diet.cont.in.T0","diet.cont.in.T1","diet.cont.in.T2","diet.cont.in.T3","diet.cont.in.T4","diet.cont.in.T5","diet.cont.in.T6","diet.cont.in.T7","diet.cont.in.T8","diet.cont.in.T9","diet.cont.in.T10","diet.cont.in.T11","diet.cont.in.T12","diet.cont.in.T13","diet.cont.in.T14","diet.cont.in.T15","diet.cont.in.T16","diet.cont.in.T17","diet.cont.in.T18","diet.cont.in.T19","diet.cont.in.T20","diet.cont.in.T21","diet.cont.in.T22","diet.cont.in.T23","diet.cont.in.T24","diet.cont.in.T25","diet.cont.in.T26","diet.cont.in.T27","diet.cont.in.T28","diet.cont.in.T29","diet.cont.in.T30","diet.cont.in.T31","diet.cont.in.T32","diet.cont.in.T33","diet.cont.in.T34","diet.cont.in.T35","diet.cont.in.T36","diet.cont.in.T37"),variable.name="Timepoint",value.name="diet.cont.in")
+para_contin$Timepoint<- gsub("diet.cont.in.", "",para_contin$Timepoint)
+View(para_contin)
+
+para_contout<-melt(para,id.vars=c("bug.id","treatment","temp"),measure.vars=c("diet.cont.out.T0","diet.cont.out.T1","diet.cont.out.T2","diet.cont.out.T3","diet.cont.out.T4","diet.cont.out.T5","diet.cont.out.T6","diet.cont.out.T7","diet.cont.out.T8","diet.cont.out.T9","diet.cont.out.T10","diet.cont.out.T11","diet.cont.out.T12","diet.cont.out.T13","diet.cont.out.T14","diet.cont.out.T15","diet.cont.out.T16","diet.cont.out.T17","diet.cont.out.T18","diet.cont.out.T19","diet.cont.out.T20","diet.cont.out.T21","diet.cont.out.T22","diet.cont.out.T23","diet.cont.out.T24","diet.cont.out.T25","diet.cont.out.T26","diet.cont.out.T27","diet.cont.out.T28","diet.cont.out.T29","diet.cont.out.T30","diet.cont.out.T31","diet.cont.out.T32","diet.cont.out.T33","diet.cont.out.T34","diet.cont.out.T35","diet.cont.out.T36","diet.cont.out.T37"),variable.name="Timepoint",value.name="diet.cont.out")
+para_contout$Timepoint<- gsub("diet.cont.out.", "",para_contout$Timepoint)
+View(para_contout)
+
+para_catout<-melt(para,id.vars=c("bug.id","treatment","temp"),measure.vars=c("diet.cat.out.T0","diet.cat.out.T1","diet.cat.out.T2","diet.cat.out.T3","diet.cat.out.T4","diet.cat.out.T5","diet.cat.out.T6","diet.cat.out.T7","diet.cat.out.T8","diet.cat.out.T9","diet.cat.out.T10","diet.cat.out.T11","diet.cat.out.T12","diet.cat.out.T13","diet.cat.out.T14","diet.cat.out.T15","diet.cat.out.T16","diet.cat.out.T17","diet.cat.out.T18","diet.cat.out.T19","diet.cat.out.T20","diet.cat.out.T21","diet.cat.out.T22","diet.cat.out.T23","diet.cat.out.T24","diet.cat.out.T25","diet.cat.out.T26","diet.cat.out.T27","diet.cat.out.T28","diet.cat.out.T29","diet.cat.out.T30","diet.cat.out.T31","diet.cat.out.T32","diet.cat.out.T33","diet.cat.out.T34","diet.cat.out.T35","diet.cat.out.T36"),variable.name="Timepoint",value.name="diet.cat.out")
+para_catout$Timepoint<- gsub("diet.cat.out.", "",para_catout$Timepoint)
+View(para_catout)
+
+para_catin<-melt(para,id.vars=c("bug.id","treatment","temp"),measure.vars=c("diet.cat.in.T0","diet.cat.in.T1","diet.cat.in.T2","diet.cat.in.T3","diet.cat.in.T4","diet.cat.in.T5","diet.cat.in.T6","diet.cat.in.T7","diet.cat.in.T8","diet.cat.in.T9","diet.cat.in.T10","diet.cat.in.T11","diet.cat.in.T12","diet.cat.in.T13","diet.cat.in.T14","diet.cat.in.T15","diet.cat.in.T16","diet.cat.in.T17","diet.cat.in.T18","diet.cat.in.T19","diet.cat.in.T20","diet.cat.in.T21","diet.cat.in.T22","diet.cat.in.T23","diet.cat.in.T24","diet.cat.in.T25","diet.cat.in.T26","diet.cat.in.T27","diet.cat.in.T28","diet.cat.in.T29","diet.cat.in.T30","diet.cat.in.T31","diet.cat.in.T32","diet.cat.in.T33","diet.cat.in.T34","diet.cat.in.T35","diet.cat.in.T36","diet.cat.in.T37"),variable.name="Timepoint",value.name="diet.cat.in")
+para_catin$Timepoint<- gsub("diet.cat.in.", "",para_catin$Timepoint)
+View(para_catin)
+
+
+data_1<- merge(para_catin, para_catout)
+data_2<-merge(para_contin,para_contout)
+wmdiet<-merge(data_1,data_2)
+View(wmdiet)
+
+#There should be an easier way to assign tp to appropriate Timpoints (if function?) but I don't
+#have time to figure it out--doing the long and ugly way
+
+wmdiet$tp<-0
+
+wmdiet$tp[wmdiet$Timepoint=="T0"]<-6
+wmdiet$tp[wmdiet$Timepoint=="T2"]<-6
+wmdiet$tp[wmdiet$Timepoint=="T4"]<-6
+wmdiet$tp[wmdiet$Timepoint=="T6"]<-6
+wmdiet$tp[wmdiet$Timepoint=="T8"]<-6
+wmdiet$tp[wmdiet$Timepoint=="T10"]<-6
+
+wmdiet$tp[wmdiet$Timepoint=="T1"]<-18
+wmdiet$tp[wmdiet$Timepoint=="T3"]<-18
+wmdiet$tp[wmdiet$Timepoint=="T5"]<-18
+wmdiet$tp[wmdiet$Timepoint=="T7"]<-18
+wmdiet$tp[wmdiet$Timepoint=="T9"]<-18
+wmdiet$tp[wmdiet$Timepoint=="T11"]<-18
+
+wmdiet$tp[wmdiet$Timepoint=="T12"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T13"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T14"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T15"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T16"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T17"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T18"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T19"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T20"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T21"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T22"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T23"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T24"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T25"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T26"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T27"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T28"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T29"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T30"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T31"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T32"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T33"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T34"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T35"]<-24
+wmdiet$tp[wmdiet$Timepoint=="T36"]<-24
+
+wmdiet$temp<-as.factor(wmdiet$temp)
+wmdiet$tp<-as.factor(wmdiet$tp)
+
+
+#Plotting diet.out by diet.in for all samples
+
+allplot<-ggplot(wmdiet,aes(x=diet.cont.in,y=diet.cont.out,group=temp,color=temp))
+allplot<-allplot+geom_point(aes(shape=tp),size=2
+                            )+geom_smooth(method=lm,se=FALSE)
+allplot
+
+
+allplot<-ggplot(wmdiet,aes(x=diet.cont.in,y=diet.cont.out,group=tp,color=tp))
+allplot<-allplot+geom_point(aes(shape=temp),size=2
+                            )+geom_smooth(method=lm,se=FALSE)
+allplot
+
+
+#Creating linear model for diet.out by diet.in for all samples
+
+all.mod<-lm(diet.cont.out~diet.cont.in*temp*tp,data=wmdiet)
+summary(all.mod)
+anova(all.mod)
+
+all.res<-resid(all.mod)
+qqPlot(all.res)
+
+
+outsum<-summarySE(wmdiet, measurevar="diet.cont.out", 
+          groupvars=c("tp", "temp"),na.rm=TRUE)
+
+insum<-summarySE(wmdiet, measurevar="diet.cont.in",
+                 groupvars=c("tp","temp"),na.rm=TRUE)
+
+outsum$diet.cont.in<-insum$diet.cont.in
+outsum$diet.cont.in<-as.numeric(outsum$diet.cont.in)
+
+
+sumplot<-ggplot(outsum,aes(x=temp,y=diet.cont.out,group=tp,color=tp))
+sumplot<-sumplot+geom_point()+geom_line()
+sumplot
+
+
+sumplot2<-ggplot(outsum,aes(x=diet.cont.in,y=diet.cont.out,group=temp,color=temp))
+sumplot2<-sumplot2+geom_point(aes(shape=tp),size=3)+geom_smooth(method=lm,se=FALSE)
+sumplot2
+
+
+sumplot3<-ggplot(outsum,aes(x=diet.cont.in,y=diet.cont.out,group=tp,color=tp))
+sumplot3<-sumplot3+geom_point(aes(shape=tp),size=3)+geom_line(
+                              )+facet_wrap(~temp)
+sumplot3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
