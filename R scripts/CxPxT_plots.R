@@ -2649,3 +2649,59 @@ wide_outcome$eff_n <- ifelse(wide_outcome$treatment=="control", con_effn,
                              ifelse(wide_outcome$treatment=="para", para_effn, 0))
 
 
+
+#------------------
+
+#histogram of load number
+
+wide_para<-subset(wide_para, num.ovp<3)
+
+loadhist<-ggplot(wide_para, aes(x=load, group=temp, fill=temp))
+loadhist+geom_histogram(binwidth = 5)
+
+load.sum<-summarySE(wide_para, measurevar = "load",
+                    groupvars = "temp", na.rm = TRUE)
+
+
+#-----------------------
+
+#plotting growth instead of mass gain
+
+cpt.cl$gr<-cpt.cl$mass.gain / cpt.cl$age
+cpt.cl$gr<-ifelse(cpt.cl$gr==Inf, 1, cpt.cl$gr)
+cpt.cl$lg_gr<-log(cpt.cl$gr)
+
+
+
+gr_plot<-ggplot(cpt.cl, aes(x=age, y=gr, color=treatment))
+gr_plot+geom_point(
+)+geom_line(aes(group=interaction(treatment, bug.id))
+)+facet_wrap(~temp)
+
+lggr_plot<-ggplot(cpt.cl, aes(x=age, y=lg_gr, color=treatment))
+lggr_plot+geom_point(
+)+geom_line(aes(group=interaction(treatment, bug.id))
+)+facet_wrap(~temp)
+
+
+lggr_sum<-summarySE(cpt.cl, measurevar = "lg_gr",
+                    groupvars = c("expct.hour", "temp", "treatment"),
+                    na.rm = TRUE)
+
+agesum<-summarySE(cpt.cl, measurevar = "age",
+                  groupvars = c("expct.hour", "temp", "treatment"),
+                  na.rm = TRUE)
+
+
+lggr_sum$age<-agesum[,5]
+lggr_sum$age_se<-agesum[,7]
+
+
+lggr_sum_plot<-ggplot(lggr_sum, aes(x=age, y=lg_gr, color=treatment))
+lggr_sum_plot+geom_point(
+)+geom_line(
+)+facet_wrap(~temp)
+
+
+
+

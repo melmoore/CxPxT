@@ -1,0 +1,10 @@
+is 3rd order better than 2nd? yes for both mass and consumption
+
+what we really care about is the 3rd order function significant with interactions with temp by treatment
+
+remove interaction and test those models
+
+don't care about each of those terms, want to show that the curve of mass by age differs for diff temps and treatments
+
+model doesn't fit well at young ages, response to reviewer is that at low temperatures, the growth is disrupted because the interval spent not eating during molting is greater
+so the model fits better at older ages (smaller values of residuals), and we don't really care that it doesn't fit well at younger (esp at 20)

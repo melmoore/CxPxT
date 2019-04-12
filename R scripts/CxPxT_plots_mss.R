@@ -111,18 +111,21 @@ instr_text <- read_csv("data files/instr_text.csv",
                                         treatment = col_factor(levels = c("control", "para"))))
 
 
-lmg.plot<-ggplot(log.mg.sum,aes(x=day.age,y=log.mg,group=treatment,color=treatment))
-lmg.plot<-lmg.plot+geom_point(aes(shape=treatment),size=2)+geom_line(aes(linetype=treatment),size=1
-)+geom_errorbar(aes(ymin=log.mg-se,ymax=log.mg+se),width=.5,size=.7
-)+geom_errorbarh(aes(xmin=day.age-day.age.se,xmax=day.age+day.age.se),height=1,size=.5
-)+scale_color_manual(values=c("black","red"), 
+lmg.plot<-ggplot(log.mg.sum,aes(x=day.age,y=log.mg,group=treatment))
+lmg.plot<-lmg.plot+geom_point(aes(shape=treatment, color=treatment),size=2
+)+geom_line(aes(linetype=treatment, color=treatment),size=1
+)+geom_errorbar(aes(ymin=log.mg-se,ymax=log.mg+se, color=treatment),
+                width=.5,size=.7
+)+geom_errorbarh(aes(xmin=day.age-day.age.se,xmax=day.age+day.age.se, color=treatment),
+                 height=1,size=.5
+)+scale_color_manual(values=c("black", "#DA8E03"), 
                      name="Treatment",breaks=c("control","para"),
                      labels=c("Control","Parasitized")
 )+scale_linetype_discrete(name="Treatment",breaks=c("control","para"),
                           labels=c("Control","Parasitized")
 )+scale_shape_manual(name="Treatment",breaks=c("control","para"),values=c(16,17),
                      labels=c("Control","Parasitized")
-)+geom_point(data=avg.inst,aes(x=day.age,y=log.mg),
+)+geom_point(data=avg.inst,aes(x=day.age,y=log.mg, color=treatment),
              shape=15,
              size=4, show.legend = FALSE
 )+scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25, 30)
@@ -157,18 +160,21 @@ instr_text_cnsmp <- read_csv("data files/instr_text_cnsmp.csv",
                                               treatment = col_factor(levels = c("control", "para"))))
 
 
-cnsmp.plot<-ggplot(log.cnsmp.sum,aes(x=day.age,y=log.cnsmp,group=treatment,color=treatment))
-cnsmp.plot<-cnsmp.plot+geom_point(aes(shape=treatment),size=2)+geom_line(aes(linetype=treatment),size=1
-)+geom_errorbar(aes(ymin=log.cnsmp-se,ymax=log.cnsmp+se),width=.5,size=.7
-)+geom_errorbarh(aes(xmin=day.age-day.age.se,xmax=day.age+day.age.se),height=1,size=.5
-)+scale_color_manual(values=c("black","red"), 
+cnsmp.plot<-ggplot(log.cnsmp.sum,aes(x=day.age,y=log.cnsmp,group=treatment))
+cnsmp.plot<-cnsmp.plot+geom_point(aes(shape=treatment,color=treatment),size=2
+)+geom_line(aes(linetype=treatment,color=treatment),size=1
+)+geom_errorbar(aes(ymin=log.cnsmp-se,ymax=log.cnsmp+se,color=treatment),
+                width=.5,size=.7
+)+geom_errorbarh(aes(xmin=day.age-day.age.se,xmax=day.age+day.age.se,color=treatment),
+                 height=1,size=.5
+)+scale_color_manual(values=c("black", "#DA8E03"), 
                      name="Treatment",breaks=c("control","para"),
                      labels=c("Control","Parasitized"),guide=guide_legend(keywidth=1.8)
 )+scale_linetype_discrete(name="Treatment",breaks=c("control","para"),
                           labels=c("Control","Parasitized")
 )+scale_shape_manual(name="Treatment",breaks=c("control","para"),values=c(16,17),
                      labels=c("Control","Parasitized")
-)+geom_point(data=avg.inst,aes(x=day.age,y=log.cnsmp),shape=15,size=4,show.legend = FALSE
+)+geom_point(data=avg.inst,aes(x=day.age,y=log.cnsmp,color=treatment),shape=15,size=4,show.legend = FALSE
 )+labs(x="Age [day]", y="Log consumption [dry mg]"
 )+scale_y_continuous(limits=c(0,10)
 )+scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25, 30)

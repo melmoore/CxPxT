@@ -1,4 +1,4 @@
-#Testing GAMM and non-linear models for CxPxT
+#Testing GAMM and non-linear models for CxPxT--MASS ONLY
 
 #load libraries
 library(scales)
