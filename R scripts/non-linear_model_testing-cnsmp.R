@@ -10,6 +10,7 @@ library(readr)
 library(nlme)
 library(cowplot)
 library(car)
+library(mgcv)
 
 
 #-------------------
@@ -39,7 +40,11 @@ cpt.cl<-subset(cpt.cl, log.cnsmp>=0)
 
 #model of consumption
 
-#subset to only columns in model, and remove rows with NAs
+#subset to only columns in model, and remove rows with NAs--for mass
+cpt.sub<-select(cpt.cl, bug.id, temp, treatment, log.mass, age)
+cpt.sub<-na.omit(cpt.sub)
+
+#subset to only columns in model, and remove rows with NAs--for cnsmp
 cpt.sub2<-select(cpt.cl, bug.id, temp, treatment, log.cnsmp, age)
 cpt.sub2<-na.omit(cpt.sub2)
 
@@ -290,6 +295,8 @@ cpt_lin3<-cpt.cl
 
 cpt_lin3$resid<-residuals(linc3_mod)
 cpt_lin3$pred_f<-predict(linc3_mod, level=0)
+cpt_lin3$pred_q<-predict(linc2_mod, level=0)
+cpt_lin3$resid_q<-residuals(linc2_mod, level=0)
 
 anova(linc2_mod, linc3_mod)
 
@@ -302,6 +309,19 @@ linc_fit_plot+geom_point(
 )+geom_line(aes(y=pred_f),
             size=1
 )+facet_wrap(~temp)
+
+
+linc_resage_plot4<-ggplot(cpt_lin3, aes(x=age, y=resid_q, color=treatment))
+linc_resage_plot4+geom_point(
+)+facet_wrap(~temp)
+
+linc_fit_plot<-ggplot(cpt_lin3, aes(x=age, y=log.cnsmp, color=treatment))
+linc_fit_plot+geom_point(
+)+geom_line(aes(y=pred_f),
+            size=1
+)+facet_wrap(~temp)
+
+
 
 lina2_mod<-lme(log.mass~(age+I(age^2)):(temp*treatment)+temp,random=~age|bug.id,
                data=cpt.cl,na.action=na.exclude,method="ML")
@@ -364,25 +384,71 @@ linc_respred_plot2+geom_point(
 
 library(gam)
 
+cpt_cnsmp<-cpt.sub2
+
+gam_mod<-gamm(log.cnsmp ~ s(age, by = interaction(treatment,temp),k=10) + treatment * temp , random = list(bug.id=~1), 
+              data=cpt_cnsmp, na.action = na.omit)
+summary(gam_mod)
+anova(gam_mod)
+
+gam_mod2<-gamm(log.cnsmp ~ s(age, by = treatment, k=10) + s(age, by=temp, k=10) + treatment + temp, random = list(bug.id=~1), data=cpt.sub2, na.action = na.omit)
+
+anova(gam_mod, gam_mod2, test="Chisq")
+
+AIC(gam_mod, gam_mod2)
 
 
-gam_mod<-gam(log.cnsmp ~ s(age) * treatment * temp, data=cpt.sub2, na.action = na.omit)
+gam_temp_mod<-gamm(log.cnsmp ~ s(age, by = interaction(temp),k=10) + treatment * temp, random = list(bug.id=~1), data=cpt.sub2, na.action = na.omit)
+
+anova(gam_mod, gam_temp_mod, test="Chisq")
+
+gam_mass_mod<-gam(log.mass ~ s(age, by = interaction(treatment,temp),k=10) + treatment * temp, random = ~(1|bug.id), data=cpt.sub, na.action = na.omit)
 summary(gam_mod)
 
 
-cpt_gam<-cpt.sub2
-cpt_gam$resid<-residuals(gam_mod)
-cpt_gam$pred<-predict(gam_mod)
+cpt_gam<-cpt_cnsmp
+cpt_gam$resid<-residuals(gam_mod, level=0)
+cpt_gam$pred<-predict(gam_mod,level=0)
+cpt_gam$pred2<-predict(gam_mod2, level=0)
+cpt_gam$resid2<-residuals(gam_mod2, level=0)
 
 gam_resid_plot<-ggplot(cpt_gam, aes(x=age, y=resid, color=treatment))
 gam_resid_plot+geom_point(
 )+facet_wrap(~temp)
 
-gam_fit_plot<-ggplot(cpt_gam, aes(x=age, y=log.cnsmp, color=treatment))
-gam_fit_plot+geom_point(
-)+geom_line(aes(y=pred),
-            size=1
+gam_resid_plot2<-ggplot(cpt_gam, aes(x=age, y=resid2, color=treatment))
+gam_resid_plot2+geom_point(
 )+facet_wrap(~temp)
+
+gam_fit_plot<-ggplot(cpt_gam, aes(x=age, y=log.cnsmp, color=treatment))
+gam_fit_plot+geom_point(alpha=.2, shape=1
+) + 
+geom_line(aes(y=pred),            size=1)+
+facet_wrap(~temp) #+geom_smooth(method="gam", formula = s(x))
+
+gam_fit_plot2<-ggplot(cpt_gam, aes(x=age, y=log.cnsmp, color=treatment))
+gam_fit_plot2+geom_point(alpha=.2, shape=1
+) + 
+  geom_line(aes(y=pred2),            size=1)+
+  facet_wrap(~temp)
+
+
+cpt_gamms<-cpt.sub
+cpt_gamms$resid<-residuals(gam_mass_mod, level=0)
+cpt_gamms$pred<-predict(gam_mass_mod,level=0)
+
+gamms_resid_plot<-ggplot(cpt_gamms, aes(x=age, y=resid, color=treatment))
+gamms_resid_plot+geom_point(
+)+facet_wrap(~temp)
+
+gamms_fit_plot<-ggplot(cpt_gamms, aes(x=age, y=log.mass, color=treatment))
+gamms_fit_plot+geom_point(alpha=.2, shape=1
+) + 
+  geom_line(aes(y=pred),            size=1)+
+  facet_wrap(~temp) #+geom_smooth(method="gam", formula = s(x))
+
+
+
 
 cpt.sub<-select(cpt.cl, bug.id, temp, treatment, log.mass, age)
 cpt.sub<-na.omit(cpt.sub)
@@ -403,4 +469,113 @@ gamlm_fit_plot+geom_point(
 gamlm_resid_plot<-ggplot(cpt_mgam, aes(x=age, y=resid, color=treatment))
 gamlm_resid_plot+geom_point(
 )+facet_wrap(~temp)
+
+
+
+
+gamm_mod<-gam(log.cnsmp)
+
+
+#--------------------
+
+#James GAMM edits
+
+cpt.sub2$bug.id<-as.factor(cpt.sub2$bug.id)
+
+gam_cnsmp_mod<-gam(log.cnsmp ~ s(age, by= interaction(treatment,temp, k=10,bs="ts")) + s(bug.id,bs="re") + treatment * temp,
+             method="ML", data=cpt.sub2, na.action = na.omit)
+anova(gam_cnsmp_mod)
+summary(gam_cnsmp_mod)
+
+
+#basically a null model (saying temp and treatment have effects, but don't interact with age to affect the curve)
+gam_cnsmp_mod2<-gam(log.cnsmp ~ s(age, k=10,bs="ts") + s(bug.id,bs="fs") + treatment * temp,
+                   method="ML", data=cpt.sub2, na.action = na.omit)
+anova(gam_cnsmp_mod2)
+summary(gam_cnsmp_mod)
+
+anova(gam_cnsmp_mod2, gam_cnsmp_mod, test="Chisq")
+
+
+
+cpt.sub$bug.id<-as.factor(cpt.sub$bug.id)
+
+gam_mass_mod<-gam(log.mass ~ s(age, by= interaction(treatment,temp, k=10,bs="ts")) + s(bug.id,bs="re") + treatment * temp,
+             method="ML", data=cpt.sub, na.action = na.omit)
+anova(gam_mass_mod)
+
+
+gam_mass_mod2<-gam(log.mass ~ s(age, k=10,bs="ts") + s(bug.id,bs="fs") + treatment * temp,
+                    method="ML", data=cpt.sub, na.action = na.omit)
+
+anova(gam_mass_mod2, gam_mass_mod, test="Chisq")
+
+cpt.sub2$pred<-predict(gam_cnsmp_mod, level=0)
+cpt.sub2$resid<-residuals(gam_cnsmp_mod, level=0)
+
+cpt.sub$pred<-predict(gam_mass_mod, level=0)
+cpt.sub$resid<-residuals(gam_mass_mod, level=0)
+
+
+cnsmp_gam_fit<-ggplot(cpt.sub2, aes(x=age, y=log.cnsmp, color=treatment))
+cnsmp_gam_fit+geom_point(shape=1, alpha=.4
+)+geom_line(aes(y=pred, group=interaction(bug.id, treatment)),
+            size=1
+)+facet_wrap(~temp)
+
+
+cnsmp_gam_rp<-ggplot(cpt.sub2, aes(x=pred, y=resid, color=treatment))
+cnsmp_gam_rp+geom_point(
+)+facet_wrap(~temp)
+
+cnsmp_gam_ra<-ggplot(cpt.sub2, aes(x=age, y=resid, color=treatment))
+cnsmp_gam_ra+geom_point(
+)+facet_wrap(~temp)
+
+
+mass_gam_fit<-ggplot(cpt.sub, aes(x=age, y=log.mass, color=treatment))
+mass_gam_fit+geom_point(shape=1, alpha=.4
+)+geom_line(aes(y=pred, group=interaction(bug.id, treatment)),
+            size=1
+)+facet_wrap(~temp)
+
+
+mass_gam_rp<-ggplot(cpt.sub, aes(x=pred, y=resid, color=treatment))
+mass_gam_rp+geom_point(
+)+facet_wrap(~temp)
+
+mass_gam_ra<-ggplot(cpt.sub, aes(x=age, y=resid, color=treatment))
+mass_gam_ra+geom_point(
+)+facet_wrap(~temp)
+
+
+#-------------------
+
+#GAMM model for effects of load on mass and consumption
+
+cpt_pm<-subset(cpt.cl, treatment=="para")
+cpt_pm<-select(cpt_pm, bug.id, temp, load, log.mass, age)
+cpt_pm<-na.omit(cpt_pm)
+
+cpt_pm$bug.id<-as.factor(cpt_pm$bug.id)
+cpt_pm$load<-as.numeric(cpt_pm$load)
+
+gam_ml_mod_null<-gam(log.mass ~ s(age, k=10,bs="ts") + s(bug.id,bs="re") + load * temp,
+                  method="ML", data=cpt_pm, na.action = na.omit)
+anova(gam_ml_mod_null)
+
+gam_mass_mod<-gam(log.mass ~ s(age, by= interaction(load,temp, k=10,bs="ts")) + s(bug.id,bs="re") + load * temp,
+                  method="ML", data=cpt_pm, na.action = na.omit)
+
+
+gam_mass_mod2<-gam(log.mass ~ s(age, by=temp, k=10,bs="ts") + s(bug.id,bs="re") + load * temp,
+                  method="ML", data=cpt_pm, na.action = na.omit)
+anova(gam_mass_mod2)
+
+
+gam_mass_mod3<-gam(log.mass ~ s(age, by=temp, k=10,bs="ts") + s(age, by=load, k=10,bs="ts") + s(bug.id,bs="re") + load * temp,
+                   method="ML", data=cpt_pm, na.action = na.omit)
+anova(gam_mass_mod3)
+
+
 
