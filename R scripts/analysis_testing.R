@@ -565,12 +565,16 @@ cnsmpload.mod<-lme(tot.cnsmp~(age+I(age^2)):(temp*load)+temp,random=~age|bug.id,
 anova(cnsmpload.mod)
 
 
+para_m<-select(para.lng2, bug.id, temp, age, log.mass, load)
+para_m<-na.omit(para_m)
+
+para_m$m_pred<-predict(lmload.mod2, level=0)
+para_m$m_resid<-residuals(lmload.mod2, level=0)
 
 
-
-
-
-
+mass_load_resid<-ggplot(para_m, aes(x=m_pred, y=m_resid))
+mass_load_resid+geom_point(
+)+facet_wrap(~temp)
 
 
 
