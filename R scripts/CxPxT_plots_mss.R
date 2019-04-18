@@ -128,7 +128,8 @@ lmg.plot<-lmg.plot+geom_point(aes(shape=treatment, color=treatment),size=2
 )+geom_point(data=avg.inst,aes(x=day.age,y=log.mg, color=treatment),
              shape=15,
              size=4, show.legend = FALSE
-)+scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25, 30)
+)+scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25, 30),
+                     limits = c(0,10)
 )+labs(x="Age [day]",y="Log mass gain [mg]"
 )+facet_wrap(~temp,dir="v")+theme(strip.background = element_blank(),strip.text.x = element_blank()
 )+geom_label(data=ann_text,aes(label=name),size=5,show.legend = FALSE
@@ -223,7 +224,7 @@ age.end.plot+geom_point(aes(shape=treatment),
             size=2
 )+geom_errorbar(aes(ymin=day.age.end-se,ymax=day.age.end+se),
                 width=.3, size=1.2
-)+scale_color_manual(values=c("black","red"),
+)+scale_color_manual(values=c("black", "#DA8E03"),
                      breaks=c("control","para"),
                      labels=c("Control","Parasitized"),
                      name="Treatment"
@@ -671,14 +672,92 @@ percem.plot+geom_point(aes(shape=temp, alpha=temp),
 
 
 
+#--------------------------
+
+#subset data to only necessary columns, remove NAs
+
+#subset to only columns in model, and remove rows with NAs--for mass
+cpt.sub<-select(cpt.cl, bug.id, temp, treatment, log.mass, age)
+cpt.sub<-na.omit(cpt.sub)
+
+#subset to only columns in model, and remove rows with NAs--for cnsmp
+cpt.sub2<-select(cpt.cl, bug.id, temp, treatment, log.cnsmp, age)
+cpt.sub2<-na.omit(cpt.sub2)
 
 
+#make bug.id a factor so the model will run
+cpt.sub2$bug.id<-as.factor(cpt.sub2$bug.id)
+
+#consumption GAMM model
+gam_cnsmp_mod<-gam(log.cnsmp ~ s(age, by= interaction(treatment,temp, k=10,bs="ts")) + s(bug.id,bs="fs") + treatment * temp,
+                   method="ML", data=cpt.sub2, na.action = na.omit)
 
 
+#make bug.id a factor so the model will run
+cpt.sub$bug.id<-as.factor(cpt.sub$bug.id)
+
+#Mass GAMM model
+gam_mass_mod<-gam(log.mass ~ s(age, by= interaction(treatment,temp, k=10,bs="ts")) + s(bug.id,bs="fs") + treatment * temp,
+                  method="ML", data=cpt.sub, na.action = na.omit)
 
 
+cpt.sub2$pred<-predict(gam_cnsmp_mod, level=0)
+cpt.sub2$resid<-residuals(gam_cnsmp_mod, level=0)
+
+cpt.sub$pred<-predict(gam_mass_mod, level=0)
+cpt.sub$resid<-residuals(gam_mass_mod, level=0)
 
 
+#plotting residuals against age for consumption
+cnsmp_gam_ra<-ggplot(cpt.sub2, aes(x=age, y=resid, color=treatment))
+cnsmp_gam_ra+geom_point(size=3, alpha=.7
+)+scale_color_manual(values = c("black", "#DA8E03"),
+                     breaks=c("control", "para"),
+                     name="Treatment",
+                     labels=c("Control", "Parasitized")
+)+geom_hline(aes(yintercept=0),
+             size=1.5,
+             color="black",
+             linetype="dashed"
+)+labs(x="Age [hours]", y="Residuals"
+)+facet_wrap(~temp
+)+theme(axis.line.x=element_line(colour = 'black', size = 1),
+        axis.line.y=element_line(colour = 'black', size = 1),
+        axis.ticks = element_line(colour = 'black', size = 1),
+        axis.ticks.length = unit(2, "mm"),
+        axis.text.x = element_text(size = 18),
+        axis.text.y = element_text(size = 18),
+        axis.title.x = element_text(size = 18),
+        axis.title.y = element_text(size = 18),
+        legend.key.width=unit(4,"line"),
+        strip.background = element_rect(color="black", fill="white", linetype="solid"),
+        strip.text.x = element_text(size=18))
+
+
+#plotting residuals against age for consumption
+mass_gam_ra<-ggplot(cpt.sub, aes(x=age, y=resid, color=treatment))
+mass_gam_ra+geom_point(size=3, alpha=.7
+)+scale_color_manual(values = c("black", "#DA8E03"),
+                     breaks=c("control", "para"),
+                     name="Treatment",
+                     labels=c("Control", "Parasitized")
+)+geom_hline(aes(yintercept=0),
+             size=1.5,
+             color="black",
+             linetype="dashed"
+)+labs(x="Age [hours]", y="Residuals"
+)+facet_wrap(~temp
+)+theme(axis.line.x=element_line(colour = 'black', size = 1),
+        axis.line.y=element_line(colour = 'black', size = 1),
+        axis.ticks = element_line(colour = 'black', size = 1),
+        axis.ticks.length = unit(2, "mm"),
+        axis.text.x = element_text(size = 18),
+        axis.text.y = element_text(size = 18),
+        axis.title.x = element_text(size = 18),
+        axis.title.y = element_text(size = 18),
+        legend.key.width=unit(4,"line"),
+        strip.background = element_rect(color="black", fill="white", linetype="solid"),
+        strip.text.x = element_text(size=18))
 
 
 
