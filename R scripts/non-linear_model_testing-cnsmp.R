@@ -584,17 +584,36 @@ anova(gam_mass_mod3)
 
 
 
-gam_mass_mod4<-gam(log.mass ~ s(age, by=temp, k=10,bs="ts") + s(load, by=temp, k=10,bs="ts") + s(age, by=load, k=10,bs="ts") + s(bug.id,bs="re") + load * temp,
+gam_mass_mod4<-gam(log.mass ~ s(age, by=temp, k=10,bs="ts") + s(load, by=temp, k=10,bs="ts") + s(bug.id,bs="re") + load * temp,
                    method="ML", data=cpt_pm, na.action = na.omit)
 anova(gam_mass_mod4)
 summary(gam_mass_mod4)
 
+gam_mass_mod4.5<-gam(log.mass ~ s(age, by=temp, k=10,bs="ts") + s(load, by=temp, bs="ts") + s(bug.id,bs="re") + load * temp,
+                   method="ML", data=cpt_pm, na.action = na.omit)
+anova(gam_mass_mod4.5)
 
-gam_mass_mod5<-gam(log.mass ~ s(age, load, by=temp, k=10,bs="ts") + s(age, by=load, k=10,bs="ts") + s(bug.id,bs="re") + load * temp,
+gam_mass_mod4.52<-gam(log.mass ~ s(age, by=temp,bs="ts") + s(load, by=temp, bs="ts") + s(bug.id,bs="re") + load * temp,
+                     method="ML", data=cpt_pm, na.action = na.omit)
+
+
+AIC(gam_mass_mod4, gam_mass_mod4.5, gam_mass_mod4.52)
+
+gam_mass_mod5<-gam(log.mass ~ s(age, load, by=temp, bs="ts") + s(bug.id,bs="re") + load * temp,
                    method="ML", data=cpt_pm, na.action = na.omit)
 anova(gam_mass_mod5)
 summary(gam_mass_mod5)
 
+
+gam_mass_mod5.5<-gam(log.mass ~ s(age, load, by=temp, k=10, bs="ts") + s(bug.id,bs="re") + load * temp,
+                   method="ML", data=cpt_pm, na.action = na.omit)
+anova(gam_mass_mod5.5)
+
+anova(gam_mass_mod5, gam_mass_mod5.5, test="Chisq")
+AIC(gam_mass_mod5, gam_mass_mod5.5)
+
+anova(gam_mass_mod4, gam_mass_mod5, test="Chisq")
+AIC(gam_mass_mod4, gam_mass_mod5)
 
 library(viridis)
 
@@ -604,9 +623,9 @@ cpt_ld$resid<-residuals(gam_mass_mod5, level=0)
 
 
 gam_load_fit<-ggplot(cpt_ld, aes(x=age, y=log.mass))
-gam_load_fit+geom_point(shape=1, alpha=.4
+gam_load_fit+geom_point(size=2, shape=1, alpha=.4
 )+geom_line(aes(y=pred, group=bug.id, color=load),
-            size=1
+           size=1
 )+scale_color_viridis(
 )+facet_wrap(~temp)
 
@@ -621,6 +640,61 @@ gam_ld_resage+geom_point(
 )+geom_hline(aes(yintercept=0)
 )+scale_color_viridis(
 )+facet_wrap(~temp)
+
+
+#-------------------------
+
+#GAMM model of consumption for para cats by temp and load
+
+cpt_pc<-subset(cpt.cl, treatment=="para")
+cpt_pc$load<-as.numeric(cpt_pc$load)
+cpt_pc<-subset(cpt_pc, load<400)
+
+
+cpt_pc<-select(cpt_pc, bug.id, temp, load, log.cnsmp, age)
+cpt_pc<-na.omit(cpt_pc)
+
+cpt_pc$bug.id<-as.factor(cpt_pc$bug.id)
+
+
+
+gamld_cnsmp_mod<-gam(log.cnsmp ~ s(age, load, by=temp, bs="ts") + s(bug.id,bs="re") + load * temp,
+                     method="ML", data=cpt_pc, na.action = na.omit)
+anova(gamld_cnsmp_mod)
+
+
+gamld_cnsmp_mod2<-gam(log.cnsmp ~ s(age, load, k=10, by=temp, bs="ts") + s(bug.id,bs="re") + load * temp,
+                     method="ML", data=cpt_pc, na.action = na.omit)
+
+anova(gamld_cnsmp_mod, gamld_cnsmp_mod2, test="Chisq")
+AIC(gamld_cnsmp_mod, gamld_cnsmp_mod2)
+
+cpt_ldc<-cpt_pc
+
+cpt_ldc$pred<-predict(gamld_cnsmp_mod, level=0)
+cpt_ldc$resid<-residuals(gamld_cnsmp_mod, level=0)
+
+
+gam_loadc_fit<-ggplot(cpt_ldc, aes(x=age, y=log.cnsmp))
+gam_loadc_fit+geom_point(size=2, shape=1, alpha=.4
+)+geom_line(aes(y=pred, group=bug.id, color=load),
+            size=1
+)+scale_color_viridis(
+)+facet_wrap(~temp)
+
+gam_ldc_respred<-ggplot(cpt_ldc, aes(x=pred, y=resid, color=load))
+gam_ldc_respred+geom_point(
+)+geom_hline(aes(yintercept=0)
+)+facet_wrap(~temp)
+
+
+gam_ldc_resage<-ggplot(cpt_ldc, aes(x=age, y=resid, color=load))
+gam_ldc_resage+geom_point(
+)+geom_hline(aes(yintercept=0)
+)+scale_color_viridis(
+)+facet_wrap(~temp)
+
+
 
 
 #---------------------
@@ -672,4 +746,7 @@ logis_ld_resage+geom_point(
 )+geom_hline(aes(yintercept=0)
 )+scale_color_viridis(
 )+facet_wrap(~temp)
+
+
+
 
