@@ -554,11 +554,16 @@ mass_gam_ra+geom_point(
 #GAMM model for effects of load on mass and consumption
 
 cpt_pm<-subset(cpt.cl, treatment=="para")
+cpt_pm$load<-as.numeric(cpt_pm$load)
+cpt_pm<-subset(cpt_pm, load<400)
+
+
 cpt_pm<-select(cpt_pm, bug.id, temp, load, log.mass, age)
 cpt_pm<-na.omit(cpt_pm)
 
 cpt_pm$bug.id<-as.factor(cpt_pm$bug.id)
-cpt_pm$load<-as.numeric(cpt_pm$load)
+
+
 
 gam_ml_mod_null<-gam(log.mass ~ s(age, k=10,bs="ts") + s(bug.id,bs="re") + load * temp,
                   method="ML", data=cpt_pm, na.action = na.omit)
@@ -578,4 +583,93 @@ gam_mass_mod3<-gam(log.mass ~ s(age, by=temp, k=10,bs="ts") + s(age, by=load, k=
 anova(gam_mass_mod3)
 
 
+
+gam_mass_mod4<-gam(log.mass ~ s(age, by=temp, k=10,bs="ts") + s(load, by=temp, k=10,bs="ts") + s(age, by=load, k=10,bs="ts") + s(bug.id,bs="re") + load * temp,
+                   method="ML", data=cpt_pm, na.action = na.omit)
+anova(gam_mass_mod4)
+summary(gam_mass_mod4)
+
+
+gam_mass_mod5<-gam(log.mass ~ s(age, load, by=temp, k=10,bs="ts") + s(age, by=load, k=10,bs="ts") + s(bug.id,bs="re") + load * temp,
+                   method="ML", data=cpt_pm, na.action = na.omit)
+anova(gam_mass_mod5)
+summary(gam_mass_mod5)
+
+
+library(viridis)
+
+cpt_ld<-cpt_pm
+cpt_ld$pred<-predict(gam_mass_mod5, level=0)
+cpt_ld$resid<-residuals(gam_mass_mod5, level=0)
+
+
+gam_load_fit<-ggplot(cpt_ld, aes(x=age, y=log.mass))
+gam_load_fit+geom_point(shape=1, alpha=.4
+)+geom_line(aes(y=pred, group=bug.id, color=load),
+            size=1
+)+scale_color_viridis(
+)+facet_wrap(~temp)
+
+gam_ld_respred<-ggplot(cpt_ld, aes(x=pred, y=resid, color=load))
+gam_ld_respred+geom_point(
+)+geom_hline(aes(yintercept=0)
+)+facet_wrap(~temp)
+
+
+gam_ld_resage<-ggplot(cpt_ld, aes(x=age, y=resid, color=load))
+gam_ld_resage+geom_point(
+)+geom_hline(aes(yintercept=0)
+)+scale_color_viridis(
+)+facet_wrap(~temp)
+
+
+#---------------------
+
+#testing mass by temp and load using nlme with SSlogis
+
+cpt_pg<-groupedData(log.mass ~ age|bug.id, data=cpt_pm)
+
+
+#Model with fixed effects with interactions, but no specified random effects
+
+getInitial(log.mass ~ SSlogis(age, Asym, xmid, scal), data=cpt_pm)
+
+#the 0s are place holders for start values for each combination of fixed effect and parameter
+initVals<-c(7.73,0,0,0,0,0,-2.76,0,0,0,0,0,117.26,0,0,0,0,0)
+initVals2
+
+load_logis_mod<-nlme(log.mass ~ SSlogis(age, Asym, xmid, scal),
+                     data=cpt_pg,
+                     fixed=Asym + xmid + scal ~ temp*load,
+                     random=xmid + scal ~ 1,
+                     start=initVals,
+                     control = nlmeControl(opt="nlm"))
+
+summary(load_logis_mod)
+anova(load_logis_mod)
+
+
+cpt_ldg<-cpt_pg
+cpt_ldg$pred_f<-predict(load_logis_mod, level=0)
+cpt_ldg$resid<-residuals(load_logis_mod, level=0)
+
+logis_load_fit<-ggplot(cpt_ldg, aes(x=age, y=log.mass))
+logis_load_fit+geom_point(shape=1, alpha=.4
+)+geom_line(aes(y=pred_f, group=bug.id, color=load),
+            size=1
+)+scale_color_viridis(
+)+facet_wrap(~temp)
+
+
+logis_ld_respred<-ggplot(cpt_ldg, aes(x=pred_f, y=resid, color=load))
+logis_ld_respred+geom_point(
+)+geom_hline(aes(yintercept=0)
+)+facet_wrap(~temp)
+
+
+logis_ld_resage<-ggplot(cpt_ldg, aes(x=age, y=resid, color=load))
+logis_ld_resage+geom_point(
+)+geom_hline(aes(yintercept=0)
+)+scale_color_viridis(
+)+facet_wrap(~temp)
 
