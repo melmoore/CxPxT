@@ -1,0 +1,252 @@
+GAMM mass full ANOVA
+
+Family: gaussian 
+Link function: identity 
+
+Formula:
+log.mass ~ s(age, by = interaction(treatment, temp, k = 10, bs = "ts")) + 
+    s(bug.id, bs = "re") + treatment * temp
+
+Parametric Terms:
+               df      F  p-value
+treatment       1 39.335 3.86e-10
+temp            2 81.677  < 2e-16
+treatment:temp  2  4.588   0.0102
+
+Approximate significance of smooth terms:
+                                                                           edf  Ref.df       F p-value
+s(age):interaction(treatment, temp, k = 10, bs = "ts")control.20.10.ts   8.676   8.970 3622.55  <2e-16
+s(age):interaction(treatment, temp, k = 10, bs = "ts")para.20.10.ts      8.567   8.947 3079.05  <2e-16
+s(age):interaction(treatment, temp, k = 10, bs = "ts")control.25.10.ts   5.631   6.087 3487.56  <2e-16
+s(age):interaction(treatment, temp, k = 10, bs = "ts")para.25.10.ts      5.419   5.889 2667.06  <2e-16
+s(age):interaction(treatment, temp, k = 10, bs = "ts")control.30.10.ts   4.439   4.926 3120.76  <2e-16
+s(age):interaction(treatment, temp, k = 10, bs = "ts")para.30.10.ts      4.936   5.407 2949.14  <2e-16
+s(bug.id)                                                              249.782 258.000   31.65  <2e-16
+> 
+
+#---------------------------------------------------
+
+GAMM mass full summary
+
+Family: gaussian 
+Link function: identity 
+
+Formula:
+log.mass ~ s(age, by = interaction(treatment, temp, k = 10, bs = "ts")) + 
+    s(bug.id, bs = "re") + treatment * temp
+
+Parametric coefficients:
+                     Estimate Std. Error t value Pr(>|t|)    
+(Intercept)           5.73035    0.05729 100.024  < 2e-16 ***
+treatmentpara        -0.48924    0.07801  -6.272 3.86e-10 ***
+temp25                1.03584    0.11678   8.870  < 2e-16 ***
+temp30                1.75408    0.16593  10.571  < 2e-16 ***
+treatmentpara:temp25 -0.19156    0.15879  -1.206  0.22772    
+treatmentpara:temp30 -0.64212    0.21785  -2.948  0.00322 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Approximate significance of smooth terms:
+                                                                           edf  Ref.df       F p-value    
+s(age):interaction(treatment, temp, k = 10, bs = "ts")control.20.10.ts   8.676   8.970 3622.55  <2e-16 ***
+s(age):interaction(treatment, temp, k = 10, bs = "ts")para.20.10.ts      8.567   8.947 3079.05  <2e-16 ***
+s(age):interaction(treatment, temp, k = 10, bs = "ts")control.25.10.ts   5.631   6.087 3487.56  <2e-16 ***
+s(age):interaction(treatment, temp, k = 10, bs = "ts")para.25.10.ts      5.419   5.889 2667.06  <2e-16 ***
+s(age):interaction(treatment, temp, k = 10, bs = "ts")control.30.10.ts   4.439   4.926 3120.76  <2e-16 ***
+s(age):interaction(treatment, temp, k = 10, bs = "ts")para.30.10.ts      4.936   5.407 2949.14  <2e-16 ***
+s(bug.id)                                                              249.782 258.000   31.65  <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+R-sq.(adj) =  0.963   Deviance explained = 96.5%
+-ML = 1484.2  Scale est. = 0.082334  n = 5497
+
+#------------------------------------------------------------------
+
+GAMM cnsmp full ANOVA
+
+Family: gaussian 
+Link function: identity 
+
+Formula:
+log.cnsmp ~ s(age, by = interaction(treatment, temp, k = 10, 
+    bs = "ts")) + s(bug.id, bs = "re") + treatment * 
+    temp
+
+Parametric Terms:
+               df      F  p-value
+treatment       1 34.316 4.97e-09
+temp            2  5.895  0.00277
+treatment:temp  2  5.601  0.00372
+
+Approximate significance of smooth terms:
+                                                                           edf  Ref.df        F p-value
+s(age):interaction(treatment, temp, k = 10, bs = "ts")control.20.10.ts   8.945   8.999 2151.874  <2e-16
+s(age):interaction(treatment, temp, k = 10, bs = "ts")para.20.10.ts      8.943   8.999 1840.977  <2e-16
+s(age):interaction(treatment, temp, k = 10, bs = "ts")control.25.10.ts   6.919   7.059 1895.668  <2e-16
+s(age):interaction(treatment, temp, k = 10, bs = "ts")para.25.10.ts      6.897   7.025 1840.639  <2e-16
+s(age):interaction(treatment, temp, k = 10, bs = "ts")control.30.10.ts   5.887   6.057 1960.032  <2e-16
+s(age):interaction(treatment, temp, k = 10, bs = "ts")para.30.10.ts      8.630   8.879 1451.628  <2e-16
+s(bug.id)                                                              185.194 258.000    2.662  <2e-16
+> 
+
+#--------------------------------------------------------
+
+GAMM cnsmp full summary
+
+Family: gaussian 
+Link function: identity 
+
+Formula:
+log.cnsmp ~ s(age, by = interaction(treatment, temp, k = 10, 
+    bs = "ts")) + s(bug.id, bs = "re") + treatment * 
+    temp
+
+Parametric coefficients:
+                      Estimate Std. Error t value Pr(>|t|)    
+(Intercept)            4.93632    0.02826 174.671  < 2e-16 ***
+treatmentpara         -0.22532    0.03846  -5.858 4.97e-09 ***
+temp25                 2.05335    0.60376   3.401 0.000676 ***
+temp30                 0.59354    1.24778   0.476 0.634325    
+treatmentpara:temp25   1.05801    1.05166   1.006 0.314443    
+treatmentpara:temp30 111.14949   34.81853   3.192 0.001420 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Approximate significance of smooth terms:
+                                                                           edf  Ref.df        F p-value    
+s(age):interaction(treatment, temp, k = 10, bs = "ts")control.20.10.ts   8.945   8.999 2151.874  <2e-16 ***
+s(age):interaction(treatment, temp, k = 10, bs = "ts")para.20.10.ts      8.943   8.999 1840.977  <2e-16 ***
+s(age):interaction(treatment, temp, k = 10, bs = "ts")control.25.10.ts   6.919   7.059 1895.668  <2e-16 ***
+s(age):interaction(treatment, temp, k = 10, bs = "ts")para.25.10.ts      6.897   7.025 1840.639  <2e-16 ***
+s(age):interaction(treatment, temp, k = 10, bs = "ts")control.30.10.ts   5.887   6.057 1960.032  <2e-16 ***
+s(age):interaction(treatment, temp, k = 10, bs = "ts")para.30.10.ts      8.630   8.879 1451.628  <2e-16 ***
+s(bug.id)                                                              185.194 258.000    2.662  <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+R-sq.(adj) =  0.942   Deviance explained = 94.5%
+-ML = 3597.6  Scale est. = 0.18923   n = 5499
+> 
+
+
+#----------------------------------------------------------------
+
+GAMM load mass model full ANOVA
+
+Family: gaussian 
+Link function: identity 
+
+Formula:
+log.mass ~ s(age, load, by = temp, bs = "ts") + s(bug.id, 
+    bs = "re") + load * temp
+
+Parametric Terms:
+          df F p-value
+load       1 0   0.998
+temp       2 0   1.000
+load:temp  2 0   1.000
+
+Approximate significance of smooth terms:
+                      edf Ref.df       F  p-value
+s(age,load):temp20  24.33  28.00 2846.96  < 2e-16
+s(age,load):temp25  20.23  28.00 1255.86 2.46e-11
+s(age,load):temp30  16.96  28.00 1429.62  < 2e-16
+s(bug.id)          129.32 137.00   33.15  < 2e-16
+
+
+
+#-------------------------------------------------------------------
+
+GAMM load mass model full summary
+
+> summary(gam_ml_mod)
+
+Family: gaussian 
+Link function: identity 
+
+Formula:
+log.mass ~ s(age, load, by = temp, bs = "ts") + s(bug.id, 
+    bs = "re") + load * temp
+
+Parametric coefficients:
+             Estimate Std. Error t value Pr(>|t|)
+(Intercept) 5.187e+00  3.206e+01   0.162    0.871
+load        5.416e-04  2.721e-01   0.002    0.998
+temp25      3.176e-01  5.466e+01   0.006    0.995
+temp30      9.832e-01  4.901e+01   0.020    0.984
+load:temp25 4.096e-03  4.638e-01   0.009    0.993
+load:temp30 2.209e-03  4.159e-01   0.005    0.996
+
+Approximate significance of smooth terms:
+                      edf Ref.df       F  p-value    
+s(age,load):temp20  24.33     28 2846.96  < 2e-16 ***
+s(age,load):temp25  20.23     28 1255.86 2.46e-11 ***
+s(age,load):temp30  16.96     28 1429.62  < 2e-16 ***
+s(bug.id)          129.32    137   33.15  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+R-sq.(adj) =  0.966   Deviance explained = 96.8%
+-ML = 497.29  Scale est. = 0.062907  n = 3013
+
+
+#------------------------------------------------------------------------
+
+GAMM of load and cnsmp full ANOVA
+
+Family: gaussian 
+Link function: identity 
+
+Formula:
+log.cnsmp ~ s(age, load, by = temp, bs = "ts") + s(bug.id, 
+    bs = "re") + load * temp
+
+Parametric Terms:
+          df F p-value
+load       1 0   0.998
+temp       2 0   1.000
+load:temp  2 0   1.000
+
+Approximate significance of smooth terms:
+                      edf Ref.df      F p-value
+s(age,load):temp20  27.29  28.00 831.67  <2e-16
+s(age,load):temp25  27.80  28.00 653.32  <2e-16
+s(age,load):temp30  27.80  28.00 644.54  <2e-16
+s(bug.id)           89.36 137.00   2.25  <2e-16
+> 
+
+
+#-------------------------------------------------------------------------
+
+GAMM of load and cnsmp full summary
+
+Family: gaussian 
+Link function: identity 
+
+Formula:
+log.cnsmp ~ s(age, load, by = temp, bs = "ts") + s(bug.id, 
+    bs = "re") + load * temp
+
+Parametric coefficients:
+              Estimate Std. Error t value Pr(>|t|)
+(Intercept)  4.426e+00  1.080e+02   0.041    0.967
+load         2.534e-03  9.168e-01   0.003    0.998
+temp25       7.182e+00  3.020e+03   0.002    0.998
+temp30       7.487e+00  6.443e+03   0.001    0.999
+load:temp25 -3.111e-02  2.563e+01  -0.001    0.999
+load:temp30 -6.382e-02  5.468e+01  -0.001    0.999
+
+Approximate significance of smooth terms:
+                     edf Ref.df      F p-value    
+s(age,load):temp20 27.29     28 831.67  <2e-16 ***
+s(age,load):temp25 27.80     28 653.32  <2e-16 ***
+s(age,load):temp30 27.80     28 644.54  <2e-16 ***
+s(bug.id)          89.36    137   2.25  <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+R-sq.(adj) =  0.951   Deviance explained = 95.4%
+-ML = 1808.2  Scale est. = 0.14134   n = 3013
+
+
